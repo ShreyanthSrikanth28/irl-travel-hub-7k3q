@@ -95,7 +95,7 @@ tr:hover td{background:var(--surface2)}
 .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .sel{border:2px solid var(--brand)}
 textarea.wa{width:100%;min-height:150px;font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
-footer{max-width:1280px;margin:10px auto 30px;padding:0 16px;color:var(--muted);font-size:12px}
+footer .by{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:var(--ink2)}footer{max-width:1280px;margin:10px auto 30px;padding:0 16px;color:var(--muted);font-size:12px}
 .conf{background:#c8102e;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
 @media(max-width:600px){
  main{padding:10px}.hwrap{padding:8px 12px;gap:8px}.logo h1{font-size:15px}
@@ -180,9 +180,10 @@ nav.tabs{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}nav.tabs 
   <div class="tw"><table id="at"></table></div>
   <div class="note" style="margin-top:6px">Tick "done" as items are closed. Ticks are saved in this browser only; the Excel workbook has shared Owner / Status columns.</div>
  </section>
+ <section class="panel hide" id="p-roles"></section>
  <section class="panel hide" id="p-costs"></section>
 </main>
-<footer>Built from the travel-desk booking confirmations received for IRL R3 and R4. Times are local airport times. Contact numbers, vehicles and hotels are tracked in the Excel workbook.</footer>
+<footer><div>Built from the travel-desk booking confirmations received for IRL R3 and R4. Times are local airport times. Contact numbers, vehicles and hotels are tracked in the Excel workbook.</div><div class="by">Designed &amp; built by <b>Shreyanth S</b> · Team Coordinator, IRL 2026 &amp; Team Manager, Chennai Turbo Riders (CTR)</div></footer>
 <div id="tip"></div>
 <div class="modal" id="modal"><div class="box" id="mbox"></div></div>
 <script>
@@ -225,7 +226,7 @@ $('#theme').onclick=()=>{const dark=(root.dataset.theme?root.dataset.theme==='da
 /* state */
 const S={round:'R3',tab:'overview',q:'',cats:new Set(CATS.map(c=>c.k)),team:'',kinds:new Set(['Arrival Delhi','Departure Delhi']),sev:new Set(['High','Medium','Low']),sort:{k:'dt_dep',d:1}};
 let done={};try{done=JSON.parse(localStorage.getItem('irl-done')||'{}')}catch(e){}
-const TABS=[['overview','Overview'],['timeline','Timeline'],['moves','Movements'],['people','People'],['teams','Teams & Lineup'],['pickup','Pickup Plan'],['alerts','Alerts']].concat(COSTS?[['costs','Costs']]:[]);
+const TABS=[['overview','Overview'],['timeline','Timeline'],['moves','Movements'],['people','People'],['roles','Roles'],['teams','Teams & Lineup'],['pickup','Pickup Plan'],['alerts','Alerts']].concat(COSTS?[['costs','Costs']]:[]);
 $('#tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-t="${k}">${l}</button>`).join('');
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){S.tab=b.dataset.t;render()}};
 $('#rounds').innerHTML=['R3','R4','All'].map(k=>`<button data-r="${k}" aria-pressed="false">${k==='All'?'Both':k}</button>`).join('');
@@ -358,12 +359,12 @@ $('#csv').onclick=()=>{const rows=window._rows;const h=COLS.map(c=>c[1]);const q
 function nextLine(p){const ls=p.legs;return ls.map(l=>l.frm).concat(ls[ls.length-1].to).filter((x,i,a)=>i===0||x!==a[i-1]).join(' → ')}
 function renderPeople(){
   $('#pg').innerHTML=fPeople().map(p=>{const a=p.legs.filter(l=>l.kind==='Arrival Delhi').slice(-1)[0],d=p.legs.find(l=>l.kind==='Departure Delhi'),m=p.legs.find(l=>l.kind==='Departure Mumbai');
-   return `<div class="card pc" style="border-left-color:var(${catVar(p.category)})" data-p="${esc(p.name)}"><div class="top">${avatar(p.name,p.category)}<div><h4>${esc(p.name)}</h4><div class="m">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div></div></div>
+   return `<div class="card pc" style="border-left-color:var(${catVar(p.category)})" data-p="${esc(p.name)}"><div class="top">${avatar(p.name,p.category)}<div><h4>${esc(p.name)}</h4><div class="m">${esc(roleOf(p))}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div></div></div>
    <div class="route">${a?`<span>Lands ${fdShort(a.arr_date)} ${a.arr}</span>`:'<span style="color:var(--crit)">No inbound ticket</span>'}${d?`<span>Leaves DEL ${fdShort(d.date)} ${d.dep}</span>`:''}${m?`<span>Leaves BOM ${fdShort(m.date)} ${m.dep}</span>`:''}</div><div class="m" style="margin-top:6px">${esc(nextLine(p))}</div></div>`}).join('')||'<div class="note">No one matches the filters.</div>'}
 $('#pg').onclick=e=>{const c=e.target.closest('[data-p]');if(c)openPerson(c.dataset.p)};
 function openPerson(n){const p=pByName[n];if(!p)return;
   const al=alerts.filter(a=>a.who.includes(p.name.split(' ')[0])&&a.who.includes(p.name.split(' ').slice(-1)[0])||a.who===p.name);
-  $('#mbox').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category,'lg')}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="note">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}<br>${p.ticket_name?'Ticket name: '+esc(p.ticket_name)+' · ':''}Role: ${esc(p.role_conf)}</div></div></div><button class="btn" onclick="closeM()" style="align-self:flex-start">Close</button></div>
+  $('#mbox').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category,'lg')}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="note">${esc(roleOf(p))}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}<br>${p.ticket_name?'Ticket name: '+esc(p.ticket_name)+' · ':''}Role: ${esc(p.role_conf)}</div></div></div><button class="btn" onclick="closeM()" style="align-self:flex-start">Close</button></div>
   ${al.length?`<div style="margin:10px 0">${al.map(a=>`<div style="margin:4px 0"><span class="sev ${a.sev}">${a.sev==='High'?'▲':a.sev==='Medium'?'◆':'●'} ${a.sev}</span> ${esc(a.title)}</div>`).join('')}</div>`:''}
   ${p.legs.map(l=>`<div class="step"><div class="d">${fd(l.date)}<small>${l.dep} → ${l.arr}${l.arr_date!==l.date?' (+1)':''}</small></div><div><div class="k" style="color:var(${catVar(p.category)})">${esc(l.kind)}</div><b>${esc(l.frm_city)} (${l.frm}) → ${esc(l.to_city)} (${l.to})</b><br>${esc(l.airline)} ${esc(l.flight)}${l.dep_term?' · dep '+esc(l.dep_term):''}${l.arr_term?' · arr '+esc(l.arr_term):''}<br><span class="note">${esc(l.cls||'')} ${l.bag?'· Bags: '+esc(l.bag):''} ${l.ticket?'· Tkt '+esc(l.ticket):''} · ${esc(l.cart)}</span></div></div>`).join('')}`;
   $('#modal').style.display='flex'}
@@ -410,6 +411,19 @@ function renderAlerts(){
   $('#at').innerHTML='<tr><th>Done</th><th>Priority</th><th>Type</th><th>Who</th><th>Issue</th><th>Suggested action</th></tr>'+rows.map(a=>{const id=a.title+a.who;return `<tr style="${done[id]?'opacity:.45':''}"><td><input type="checkbox" data-d="${A(id)}" ${done[id]?'checked':''} aria-label="Mark done"></td><td><span class="sev ${a.sev}">${a.sev==='High'?'▲':a.sev==='Medium'?'◆':'●'} ${a.sev}</span></td><td>${esc(a.cat)}</td><td>${esc(a.who)}</td><td><b>${esc(a.title)}</b><br><span class="note">${esc(a.detail)}</span></td><td>${esc(a.action)}</td></tr>`}).join('')}
 $('#sevchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const s=c.dataset.s;S.sev.has(s)?S.sev.delete(s):S.sev.add(s);render()};
 $('#at').onchange=e=>{const c=e.target.closest('[data-d]');if(c){done[c.dataset.d]=c.checked;try{localStorage.setItem('irl-done',JSON.stringify(done))}catch(x){}render()}};
+/* ROLES: edit here when assignments are confirmed */
+const MANAGERS={'Chennai Turbo Riders':'Shreyanth S'};
+const STAFF_ROLE={'Shreyanth S':'Team Coordinator · Team Manager, Chennai Turbo Riders (CTR)'};
+const roleOf=p=>STAFF_ROLE[p.name]||({'Driver':'Driver','Social Media & PR':'Social Media & PR','Team Coordinator':'Team Coordinator'}[p.category]||p.category);
+function renderRoles(){
+  const byTeam={};DATA.L4.concat(DATA.L3.filter(x=>!DATA.L4.some(y=>y.name===x.name))).forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
+  const grp=c=>ALLP.filter(p=>p.category===c).sort((a,b)=>a.name.localeCompare(b.name));
+  const person=p=>`<div class="tm"><span class="who">${avatar(p.name,p.category,'sm')}<span><b>${esc(p.name)}</b><br><span class="note">${esc(roleOf(p))}${p.role_conf&&p.role_conf.startsWith('Inferred')?' · role to confirm':''}</span></span></span></div>`;
+  $('#p-roles').innerHTML=`<div class="note" style="margin-bottom:10px">Who is who for R3 and R4. Team manager assignments marked "to be assigned" will be filled in once confirmed.</div>
+  <h3 style="margin:6px 0">Driver teams</h3><div class="grid cols2">${Object.entries(byTeam).map(([t,ms])=>`<div class="card team"><div class="th">${teamBadge(t)}<div><h4>${esc(t)}</h4><div class="note">Team manager: ${MANAGERS[t]?'<b>'+esc(MANAGERS[t])+'</b>':'<i>to be assigned</i>'}</div></div></div>${ms.map(m=>`<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}</span></span></span></span></div>`).join('')}</div>`).join('')}</div>
+  <h3 style="margin:18px 0 6px">Team coordinators</h3><div class="grid cols2"><div class="card">${grp('Team Coordinator').map(person).join('')}</div></div>
+  <h3 style="margin:18px 0 6px">Social media & PR</h3><div class="grid cols2"><div class="card">${grp('Social Media & PR').map(person).join('')}</div></div>
+  <h3 style="margin:18px 0 6px">Race engineers</h3><div class="card note">No race engineer travel received yet for R3 / R4.</div>`}
 function renderCosts(){
   const carts={};ALLS.forEach(s=>{if(s.cart_total!=null&&!carts[s.cart])carts[s.cart]={p:s.person,cat:s.category,t:s.cart_total,intl:false,route:''}});
   ALLP.forEach(p=>p.carts.forEach(c=>{if(carts[c.cart]){carts[c.cart].route=c.route;carts[c.cart].intl=p.legs.filter(l=>l.cart===c.cart).some(l=>l.intl)}}));
@@ -425,9 +439,9 @@ function render(){
   $$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===S.tab));
   $$('.panel').forEach(p=>p.classList.toggle('hide',p.id!=='p-'+S.tab));
   $$('#catchips .chip').forEach(c=>c.setAttribute('aria-pressed',S.cats.has(c.dataset.c)));
-  $('#filters').classList.toggle('hide',['alerts','costs'].includes(S.tab)&&S.tab==='costs');
+  $('#filters').classList.toggle('hide',['roles','costs'].includes(S.tab));
   $('#fcount').textContent=fPeople().length+' of '+people.length+' people with '+(S.round==='All'?'':S.round+' ')+'tickets';
-  ({overview:renderOverview,timeline:renderTimeline,moves:renderMoves,people:renderPeople,teams:renderTeams,pickup:renderPickup,alerts:renderAlerts,costs:()=>COSTS&&renderCosts()})[S.tab]();
+  ({overview:renderOverview,timeline:renderTimeline,moves:renderMoves,people:renderPeople,teams:renderTeams,pickup:renderPickup,alerts:renderAlerts,roles:renderRoles,costs:()=>COSTS&&renderCosts()})[S.tab]();
   stackify('#at');stackify('#pt');
   try{history.replaceState(null,'','#'+S.tab)}catch(e){}}
 applyRound();fillTeams();const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))S.tab=h;
