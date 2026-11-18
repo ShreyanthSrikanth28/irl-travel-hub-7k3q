@@ -202,6 +202,20 @@ nav.tabs button:hover{transform:translateY(-1px);color:#fff}
 .ti .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;font-size:12px;color:var(--ink2)}
 .ti .tx{font-weight:600}
 .due.over{color:var(--crit);font-weight:700}.due.soon{color:#b27a00;font-weight:700}
+
+/* simple layout bits */
+.chip.big{font-size:15px;padding:8px 16px;font-weight:600}
+.prow{cursor:pointer;border-radius:8px;padding-left:4px;padding-right:4px}.prow:hover{background:var(--surface2)}
+.av.xs{width:24px;height:24px;font-size:9px}
+.fl{display:flex;gap:14px;padding:12px 14px;margin-bottom:10px;align-items:flex-start}
+.fl .ft{min-width:74px;text-align:center;background:var(--surface2);border-radius:10px;padding:8px 6px}
+.fl .ft b{display:block;font-size:22px;line-height:1.1;color:var(--brand)}.fl .ft span{font-size:12px;color:var(--ink2)}
+.fl .fb{flex:1;min-width:0}.fl .fh{margin-bottom:6px}
+.fl .fp{display:flex;flex-wrap:wrap;gap:6px}
+.pp{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:99px;padding:3px 10px 3px 3px;font-size:13px;cursor:pointer}
+.pp:hover{background:var(--line)}
+.fl .fn{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+@media(max-width:600px){.fl{flex-direction:column;gap:8px}.fl .ft{display:flex;gap:8px;align-items:baseline;justify-content:flex-start;text-align:left;padding:6px 10px;min-width:0;width:max-content}.fl .ft b{font-size:18px}}
 @media print{header.top,.filters,nav.tabs,.btn{display:none!important}.panel{display:block!important;page-break-after:always}body{background:#fff}}
 </style>
 </head>
@@ -221,42 +235,19 @@ nav.tabs button:hover{transform:translateY(-1px);color:#fff}
  <nav class="tabs" id="tabs" role="tablist"></nav>
 </header>
 <main>
- <div class="filters" id="filters">
-  <input type="search" id="q" placeholder="Search name, flight, city, team…" aria-label="Search">
-  <span id="catchips"></span>
-  <select id="team" aria-label="Team"><option value="">All teams</option></select>
-  <button class="btn" id="reset">Reset</button>
-  <span class="note" id="fcount"></span>
- </div>
-
- <section class="panel" id="p-overview">
+ <section class="panel" id="p-home">
   <div id="hero"></div>
+  <div id="attn"></div>
   <div class="grid kpis" id="kpis"></div>
   <div class="grid cols2" style="margin-top:14px" id="charts"></div>
  </section>
+ <section class="panel hide" id="p-people"></section>
+ <section class="panel hide" id="p-flights"></section>
  <section class="panel hide" id="p-timeline">
-  <div class="card ch"><div class="head"><div><h3>Journey timeline: who is where</h3><div class="sub">Each dot is a flight. Hover for details. Shaded bands are race weekends. Rows follow current filters.</div></div></div>
+  <div class="card ch"><div class="head"><div><h3>Everyone's journey on one page</h3><div class="sub">Each row is a person, each bar a flight. Tap or hover a flight for details. Pink bands are race weekends.</div></div></div>
    <div class="legend" id="tl-legend"></div><div id="tl" style="overflow-x:auto"></div></div>
  </section>
- <section class="panel hide" id="p-moves">
-  <div class="pill-row" id="kindchips"></div>
-  <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><button class="btn" id="csv">Download CSV (filtered)</button><span class="note">Click a column header to sort.</span></div>
-  <div class="tw"><table id="mt"></table></div>
- </section>
- <section class="panel hide" id="p-people"><div class="grid people" id="pg"></div></section>
- <section class="panel hide" id="p-teams"><div class="note" style="margin-bottom:10px">Selected round's official lineup matched against tickets received. ✓ ticketed, ! partial, ✗ no ticket.</div><div class="grid cols2" id="tg"></div></section>
- <section class="panel hide" id="p-pickup">
-  <div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><b>Day</b><select id="pday" class="btn"></select><select id="pmode" class="btn"><option value="Arrival Delhi">Arrivals at Delhi</option><option value="Departure Delhi">Departures from Delhi</option><option value="Departure Mumbai">Departures from Mumbai</option></select><button class="btn" id="copywa">Copy brief for WhatsApp</button><span class="note" id="copied"></span></div>
-  <div class="tw" style="margin-top:10px"><table id="pt"></table></div>
-  <textarea class="wa" id="wa" style="margin-top:10px" readonly></textarea></div>
- </section>
- <section class="panel hide" id="p-alerts">
-  <div class="pill-row" id="sevchips"></div>
-  <div class="tw"><table id="at"></table></div>
-  <div class="note" style="margin-top:6px">Tick "done" as items are closed. Ticks are saved in this browser only; the Excel workbook has shared Owner / Status columns.</div>
- </section>
  <section class="panel hide" id="p-todo"></section>
- <section class="panel hide" id="p-roles"></section>
  <section class="panel hide" id="p-costs"></section>
 </main>
 <footer class="site"><div class="fine">Built from the travel-desk booking confirmations received for IRL R3 and R4. Times are local airport times. Vehicles, hotels and contact numbers live in the Excel workbooks.</div><div class="credit">Built with <span class="em">💙</span> and a lot of chai by <b>Shreyanth S</b> <span class="em">🏎️💨</span></div></footer>
@@ -325,29 +316,16 @@ const root=document.documentElement;
 try{const t=localStorage.getItem('irl-theme');if(t)root.dataset.theme=t}catch(e){}
 $('#theme').onclick=()=>{const dark=(root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches);root.dataset.theme=dark?'light':'dark';try{localStorage.setItem('irl-theme',root.dataset.theme)}catch(e){}render()};
 /* state */
-const S={round:'R3',tab:'overview',q:'',cats:new Set(CATS.map(c=>c.k)),team:'',kinds:new Set(['Arrival Delhi','Departure Delhi']),sev:new Set(['High','Medium','Low']),sort:{k:'dt_dep',d:1}};
-let done={};try{done=JSON.parse(localStorage.getItem('irl-done')||'{}')}catch(e){}
-const TABS=[['overview','🏁 Overview'],['timeline','🗺️ Timeline'],['moves','✈️ Movements'],['people','👥 People'],['roles','🧢 Roles'],['teams','🏎️ Teams'],['pickup','🚗 Pickups'],['todo','✅ To-Do'],['alerts','🚨 Alerts']].concat(COSTS?[['costs','💰 Costs']]:[]);
+const S={round:'R3',tab:'home',pg:'all',duty:'Fri',fk:'',fd:'',fq:'',pq:''};
+const TABS=[['home','🏠 Home'],['people','👥 People'],['flights','✈️ Flights'],['timeline','🗺️ Timeline'],['todo','✅ To-Do']].concat(COSTS?[['costs','💰 Costs']]:[]);
 $('#tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" data-t="${k}">${l}</button>`).join('');
-$('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){S.tab=b.dataset.t;render()}};
-$('#rounds').innerHTML=['R3','R4','All'].map(k=>`<button data-r="${k}" aria-pressed="false">${k==='All'?'Both':k}</button>`).join('');
-$('#rounds').onclick=e=>{const b=e.target.closest('button');if(b){S.round=b.dataset.r;S.team='';$('#team').value='';if(S.round==='R4'){$('#pmode').value='Departure Mumbai'}else if($('#pmode').value==='Departure Mumbai'&&S.round==='R3')$('#pmode').value='Arrival Delhi';S.kinds=new Set(S.round==='R4'?['Departure Mumbai']:S.round==='R3'?['Arrival Delhi','Departure Delhi']:['Arrival Delhi','Departure Delhi','Departure Mumbai']);try{localStorage.setItem('irl-round',S.round)}catch(x){}render()}};
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){S.tab=b.dataset.t;render();window.scrollTo({top:0})}};
+$('#rounds').innerHTML=[['R3','R3 · Delhi'],['R4','R4 · Mumbai'],['All','Both']].map(([k,l])=>`<button data-r="${k}" aria-pressed="false">${l}</button>`).join('');
+$('#rounds').onclick=e=>{const b=e.target.closest('button');if(b){S.round=b.dataset.r;S.fk='';S.fd='';try{localStorage.setItem('irl-round',S.round)}catch(x){}render()}};
 try{const r=localStorage.getItem('irl-round');if(r&&RND[r])S.round=r}catch(e){}
 if(/round=(R3|R4|All)/.test(location.search))S.round=location.search.match(/round=(R3|R4|All)/)[1];
-S.kinds=new Set(S.round==='R4'?['Departure Mumbai']:S.round==='R3'?['Arrival Delhi','Departure Delhi']:['Arrival Delhi','Departure Delhi','Departure Mumbai']);if(S.round==='R4')$('#pmode').value='Departure Mumbai';
-/* filters */
-$('#catchips').innerHTML=CATS.map(c=>`<span class="chip" role="button" tabindex="0" aria-pressed="true" data-c="${esc(c.k)}"><span class="dot" style="background:var(${c.c})"></span>${c.l}</span>`).join(' ');
-$('#catchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const k=c.dataset.c;S.cats.has(k)?S.cats.delete(k):S.cats.add(k);render()};
-function fillTeams(){const teams=[...new Set(LINE.map(x=>x.team))].sort();$('#team').innerHTML='<option value="">All teams</option>'+teams.map(t=>`<option>${esc(t)}</option>`).join('');$('#team').value=S.team}
-$('#team').onchange=e=>{S.team=e.target.value;render()};
-$('#q').oninput=e=>{S.q=e.target.value.toLowerCase();render()};
-$('#reset').onclick=()=>{S.q='';$('#q').value='';S.cats=new Set(CATS.map(c=>c.k));S.team='';$('#team').value='';render()};
-function personOK(p){
-  if(!S.cats.has(p.category))return false; if(S.team&&p.team!==S.team)return false;
-  if(S.q){const h=(p.name+' '+p.team+' '+p.category+' '+(p.nat||'')+' '+p.legs.map(l=>l.flight+' '+l.frm+' '+l.to+' '+l.frm_city+' '+l.to_city+' '+l.airline).join(' ')).toLowerCase();if(!S.q.split(/\s+/).every(w=>h.includes(w)))return false}
-  return true}
-const fPeople=()=>people.filter(personOK);
-const fSegs=()=>{const ok=new Set(fPeople().map(p=>p.name));return segs.filter(s=>ok.has(s.person))};
+const fPeople=()=>people;
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){S.tab=g.dataset.go;render();window.scrollTo({top:0})}});
 /* tooltip */
 const tip=$('#tip');
 function showTip(e,html){tip.innerHTML=html;tip.style.display='block';const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=Math.max(4,x)+'px';tip.style.top=Math.max(4,y)+'px'}
@@ -391,39 +369,31 @@ function card(id,title,sub,labels,series,opts={}){
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tg]');if(b){tableMode[b.dataset.tg]=!tableMode[b.dataset.tg];render()}});
 /* views */
 function dayRange(a,b){const out=[];let d=U(a);const e=U(b);while(d<=e){out.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+864e5)}return out}
-function renderOverview(){
-  const P=fPeople(),SG=fSegs();
+function ticketedIn(n){return ALLP.some(p=>p.name===n&&p.legs.some(l=>S.round==='All'||l.round===S.round))}
+function renderHome(){
+  const SG=segs,P=people;
   const arr=SG.filter(s=>s.kind==='Arrival Delhi'),dd=SG.filter(s=>s.kind==='Departure Delhi'),dm=SG.filter(s=>s.kind==='Departure Mumbai');
-  const hi=alerts.filter(a=>a.sev==='High'&&!done[a.title+a.who]).length;
-  const noT=LINE.filter(m=>!(S.round==='R3'&&LOCALS.has(m.name))&&!ALLP.some(p=>p.name===m.name&&p.legs.some(l=>S.round==='All'||l.round===S.round))).length;
+  const miss=LINE.filter(m=>!(S.round==='R3'&&LOCALS.has(m.name))&&!ticketedIn(m.name)).length;
   const R4=S.round==='R4';
-  const tiles=[['People travelling',P.length,`${P.filter(p=>p.category==='Driver').length} drivers · ${P.filter(p=>p.category!=='Driver').length} staff`],['Flight segments',SG.length,`${new Set(SG.map(s=>s.cart)).size} bookings`],S.round==='R4'?['Leaving Mumbai',dm.length,'after R4']:['Landing in Delhi',arr.length,'R3 inbound'],...(S.round==='R4'?[['Inbound to Mumbai','Pending','no R4 inbound tickets yet']]:[['Leaving Delhi',dd.length,'after R3']]),...(S.round==='All'?[['Leaving Mumbai',dm.length,'after R4']]:[]),['High priority alerts',hi,'open',hi?'bad':''],['Lineup drivers, no ticket',noT,`of ${LINE.length} in ${S.round==='All'?'lineups':S.round+' lineup'}`,'bad']];
+  const tiles=[['People travelling',P.length,'with tickets in hand'],
+    ...(R4?[]:[['Landing in Delhi',arr.length,'flights coming in']]),
+    ...(R4||S.round==='All'?[['Leaving Mumbai',dm.length,'after the night race']]:[]),
+    ...(R4?[]:[['Leaving Delhi',dd.length,'after the race']]),
+    ['Drivers without a ticket',miss,'still to be booked',miss?'bad':'']];
   $('#hero').innerHTML=hero();
+  // attention
+  const items=TODO.filter(t=>(S.round==='All'||t.round===S.round||t.round==='Both')&&!isDone(t)&&t.pri==='High').sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4);
+  $('#attn').innerHTML=items.length?`<div class="card" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">🔥 Do these first</h3><button class="btn" data-go="todo">See full to-do list →</button></div><div style="margin-top:10px">${items.map(todoRow).join('')}</div></div>`:'<div class="card" style="margin-bottom:14px;text-align:center;font-size:16px">🎉 Nothing urgent. Nice work, team!</div>';
   $('#kpis').innerHTML=tiles.map(([l,v,s,c])=>`<div class="card kpi ${c||''}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join('');
   const days=dayRange(RND[S.round].a,RND[S.round].b);
   const act=days.filter(d=>SG.some(s=>(s.kind==='Arrival Delhi'?s.arr_date:s.date)===d&&KINDS.slice(0,3).includes(s.kind)));
-  const lab=act.map(fdShort);
   const mv=SG.filter(s=>KINDS.slice(0,3).includes(s.kind));
-  const ser=CATS.map(c=>({name:c.l,color:c.c,values:act.map(d=>mv.filter(s=>s.category===c.k&&(s.kind==='Arrival Delhi'?s.arr_date:s.date)===d).length)}));
-  const hrs=[...Array(24).keys()];
-  const hsrc=R4?dm:arr,hf=s=>R4?+s.dep.slice(0,2):+s.arr.slice(0,2);
-  const hs=CATS.map(c=>({name:c.l,color:c.c,values:hrs.map(h=>hsrc.filter(s=>s.category===c.k&&hf(s)===h).length)}));
-  const cnt=(arr,f)=>{const m={};arr.forEach(x=>{const k=f(x);m[k]=(m[k]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
-  const orig=R4?cnt(P.filter(p=>p.legs.some(l=>l.kind==='Departure Mumbai')),p=>{const ls=p.legs.filter(l=>l.cart===p.legs.find(x=>x.kind==='Departure Mumbai').cart);return ls[ls.length-1].to_city}):cnt(P.filter(p=>p.legs.some(l=>l.kind==='Arrival Delhi')),p=>{const l=p.legs.filter(l=>l.cart===p.legs.filter(x=>x.kind==='Arrival Delhi').slice(-1)[0].cart)[0];return l.frm_city});
-  const os=[{name:'People',color:'--seq',values:orig.slice(0,9).map(x=>x[1])}];
-  const tsrc=R4?dm:arr,tf=s=>R4?s.dep_term:s.arr_term;
-  const term=cnt(tsrc,s=>tf(s)||'n/a').sort();
-  const ts=CATS.map(c=>({name:c.l,color:c.c,values:term.map(([t])=>tsrc.filter(s=>tf(s)===t&&s.category===c.k).length)}));
-  const air=cnt(SG,s=>s.airline.replace(' Airlines','').replace(' Airways','').replace(' International Air Lines','').replace(' (op. IndiGo)',''));
-  const as=[{name:'Segments',color:'--seq',values:air.slice(0,9).map(x=>x[1])}];
-  const html=[
-   card('c1','Daily movements','Flights landing in Delhi (by landing date) and leaving Delhi / Mumbai (by departure date), by group',lab,ser,{tipLabel:l=>l}),
-   card('c2',R4?'When do people leave Mumbai?':'When do people land in Delhi?',R4?'Mumbai departures by flight hour (local time)':'Delhi arrivals by landing hour (local time). Spikes show where pickups cluster',hrs.map(h=>String(h).padStart(2,'0')),hs,{}),
-   card('c3',R4?'Where is everyone flying to?':'Where is everyone flying in from?',R4?'Final destination of each Mumbai departure':'Origin city of the journey into Delhi',orig.slice(0,9).map(x=>x[0]),os,{horizontal:true,stacked:false}),
-   card('c4',R4?'Mumbai terminal load':'Delhi terminal load','Flights per terminal, so you know where to station drivers',term.map(x=>x[0]),ts,{}),
-   card('c5','Airlines used','Flight segments per airline',air.slice(0,9).map(x=>x[0]),as,{horizontal:true,stacked:false})];
-  if(!COSTS){}
-  $('#charts').innerHTML=html.join('')}
+  const ser=CATS.map(c=>({name:c.l,color:c.c,values:act.map(d=>mv.filter(s=>s.category===c.k&&(s.kind==='Arrival Delhi'?s.arr_date:s.date)===d).length)})).filter(s=>s.values.some(v=>v));
+  const hrs=[...Array(24).keys()],hsrc=R4?dm:arr,hf=s=>R4?+s.dep.slice(0,2):+s.arr.slice(0,2);
+  const hs=CATS.map(c=>({name:c.l,color:c.c,values:hrs.map(h=>hsrc.filter(s=>s.category===c.k&&hf(s)===h).length)})).filter(s=>s.values.some(v=>v));
+  $('#charts').innerHTML=[
+   card('c1','Busiest days','People landing or leaving on each day',act.map(fdShort),ser,{}),
+   card('c2',R4?'When do people leave Mumbai?':'When do people land in Delhi?','Number of people by hour of the day (local time)',hrs.map(h=>String(h).padStart(2,'0')),hs,{})].join('')}
 function renderTimeline(){
   const P=fPeople().slice().sort((a,b)=>CATS.findIndex(c=>c.k===a.category)-CATS.findIndex(c=>c.k===b.category)||(a.arrive_delhi||'z').localeCompare(b.arrive_delhi||'z'));
   const start=U(RND[S.round].a).getTime(),end=U(RND[S.round].b).getTime(),span=end-start;
@@ -448,22 +418,6 @@ function renderTimeline(){
     })});
   $('#tl').innerHTML=`<svg width="${W}" height="${H}" role="img" aria-label="Journey timeline">${s}</svg>`;
   $('#tl-legend').innerHTML=CATS.map(c=>`<span><i style="background:var(${c.c})"></i>${c.l}</span>`).join('')+'<span>○ lands in Delhi</span><span>△ departs Delhi / Mumbai</span><span>━ in the air</span>'}
-const COLS=[['person','Name'],['category','Group'],['team','Team'],['kind','Movement'],['dt_dep','Departs'],['dep_term','Dep T'],['flight','Flight'],['route','Route'],['dt_arr','Lands'],['arr_term','Arr T']].concat(COSTS?[['cart_total','Booking fare']]:[]);
-function renderMoves(){
-  $('#kindchips').innerHTML=KINDS.map(k=>`<span class="chip" role="button" aria-pressed="${S.kinds.has(k)}" data-k="${esc(k)}">${k}</span>`).join('');
-  let rows=fSegs().filter(s=>S.kinds.has(s.kind)).map(s=>({...s,route:`${s.frm} → ${s.to}`}));
-  const {k,d}=S.sort;rows.sort((a,b)=>(a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);
-  window._rows=rows;
-  $('#mt').innerHTML='<tr>'+COLS.map(([k,l])=>`<th data-s="${k}">${l}${S.sort.k===k?(S.sort.d>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>'+rows.map(s=>`<tr><td><a href="#" data-p="${esc(s.person)}" style="color:inherit;font-weight:600">${esc(s.person)}</a></td><td><span class="tag"><i style="background:var(${catVar(s.category)})"></i>${catLab(s.category)}</span></td><td>${esc(s.team)}</td><td>${esc(s.kind)}</td><td>${fd(s.date)} ${s.dep}</td><td>${esc(s.dep_term)}</td><td>${esc(s.airline)} ${esc(s.flight)}</td><td>${s.frm} → ${s.to}</td><td>${fd(s.arr_date)} ${s.arr}</td><td>${esc(s.arr_term)}</td>${COSTS?`<td>${s.cart_total?inr(s.cart_total):''}</td>`:''}</tr>`).join('')}
-$('#kindchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const k=c.dataset.k;S.kinds.has(k)?S.kinds.delete(k):S.kinds.add(k);render()};
-$('#mt').onclick=e=>{const th=e.target.closest('th');if(th){const k=th.dataset.s;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:1};render();return}const a=e.target.closest('[data-p]');if(a){e.preventDefault();openPerson(a.dataset.p)}};
-$('#csv').onclick=()=>{const rows=window._rows;const h=COLS.map(c=>c[1]);const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const csv=[h.map(q).join(',')].concat(rows.map(r=>COLS.map(([k])=>q(r[k])).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='irl_movements.csv';a.click()};
-function nextLine(p){const ls=p.legs;return ls.map(l=>l.frm).concat(ls[ls.length-1].to).filter((x,i,a)=>i===0||x!==a[i-1]).join(' → ')}
-function renderPeople(){
-  $('#pg').innerHTML=fPeople().map(p=>{const a=p.legs.filter(l=>l.kind==='Arrival Delhi').slice(-1)[0],d=p.legs.find(l=>l.kind==='Departure Delhi'),m=p.legs.find(l=>l.kind==='Departure Mumbai');
-   return `<div class="card pc" style="border-left-color:var(${catVar(p.category)})" data-p="${esc(p.name)}"><div class="top">${avatar(p.name,p.category)}<div><h4>${esc(p.name)}</h4><div class="m">${esc(roleOf(p))}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div></div></div>
-   <div class="route">${a?`<span>Lands ${fdShort(a.arr_date)} ${a.arr}</span>`:'<span style="color:var(--crit)">No inbound ticket</span>'}${d?`<span>Leaves DEL ${fdShort(d.date)} ${d.dep}</span>`:''}${m?`<span>Leaves BOM ${fdShort(m.date)} ${m.dep}</span>`:''}</div><div class="m" style="margin-top:6px">${esc(nextLine(p))}</div></div>`}).join('')||'<div class="note" style="font-size:16px;padding:30px;text-align:center">🕵️ Nobody matches that. Try fewer filters?</div>'}
-$('#pg').onclick=e=>{const c=e.target.closest('[data-p]');if(c)openPerson(c.dataset.p)};
 function openPerson(n){const p=pByName[n];if(!p)return;
   const al=alerts.filter(a=>a.who.includes(p.name.split(' ')[0])&&a.who.includes(p.name.split(' ').slice(-1)[0])||a.who===p.name);
   $('#mbox').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category,'lg')}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="note">${esc(roleOf(p))}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div></div></div><button class="btn" onclick="closeM()" style="align-self:flex-start">Close</button></div>
@@ -472,48 +426,88 @@ function openPerson(n){const p=pByName[n];if(!p)return;
   $('#modal').style.display='flex'}
 function closeM(){$('#modal').style.display='none'}
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
-function renderTeams(){
-  const byTeam={};LINE.forEach(r=>{(byTeam[r.team]=byTeam[r.team]||[]).push(r)});
-  const R4=S.round==='R4';
-  $('#tg').innerHTML=Object.entries(byTeam).filter(([t])=>!S.team||t===S.team).map(([t,ms])=>{
-   let ok=0,pt=0,no=0;
-   const rows=ms.map(m=>{const p=pByName[m.name];let st,txt;
-     if(!p&&LOCALS.has(m.name)&&S.round==='R3'){st='ok';txt='Local 🏠 no flight needed';ok++}
-     else if(!p){st='no';txt=R4?'No R4 ticket':'No ticket';no++}
-     else if(R4){st='part';txt='Exit ticketed · inbound pending';pt++}
-     else{const a=p.legs.some(l=>l.kind==='Arrival Delhi'),o=p.legs.some(l=>l.kind==='Departure Delhi')||ALLP.find(x=>x.name===m.name).legs.some(l=>l.kind==='Departure Mumbai');if(a&&o){st='ok';txt='R3 in/out ticketed';ok++}else{st='part';txt=a?'No return':'No inbound';pt++}}
-     return `<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}</span></span></span><span class="st ${st}">${st==='ok'?'✓':st==='part'?'!':'✗'} ${txt}</span></div>`}).join('');
-   const n=ms.length;
-   return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<h4>${esc(t)}</h4></div><div class="bar"><i style="width:${ok/n*100}%;background:var(--good)"></i><i style="width:${pt/n*100}%;background:var(--warn)"></i><i style="width:${no/n*100}%;background:var(--crit)"></i></div>${rows}</div>`}).join('')}
-function renderPickup(){
-  const mode=$('#pmode').value||'Arrival Delhi';
-  const keyd=s=>mode==='Arrival Delhi'?s.arr_date:s.date;
-  const all=fSegs().filter(s=>s.kind===mode);
-  const days=[...new Set(all.map(keyd))].sort();
-  const sel=$('#pday');const cur=sel.value;sel.innerHTML='<option value="">All days</option>'+days.map(d=>`<option value="${d}">${fd(d)}</option>`).join('');if(days.includes(cur))sel.value=cur;
-  const day=sel.value;const rows=all.filter(s=>!day||keyd(s)===day);
-  const g={};rows.forEach(s=>{const k=(mode==='Arrival Delhi'?s.arr_date+' '+s.arr:s.date+' '+s.dep)+'|'+s.flight;(g[k]=g[k]||[]).push(s)});
-  const keys=Object.keys(g).sort();
-  const veh=n=>n<=2?'Sedan':n<=4?'Innova Crysta':n<=7?'Crysta + Sedan':'Tempo Traveller';
-  const lines=[];
-  $('#pt').innerHTML='<tr><th>'+(mode==='Arrival Delhi'?'Lands':'Departs')+'</th><th>Flight</th><th>Terminal</th><th>Pax</th><th>Passengers</th><th>Suggested vehicle</th><th>Note</th></tr>'+keys.map(k=>{const ss=g[k],s=ss[0];const t=mode==='Arrival Delhi'?s.arr:s.dep,tm=mode==='Arrival Delhi'?s.arr_term:s.dep_term;
-    const d=keyd(s);const notes=[];if(t<'06:00')notes.push(mode==='Arrival Delhi'?'Night pickup':'Late pick-up from hotel');
-    if(mode==='Arrival Delhi'&&ss.some(x=>pByName[x.person].nat&&pByName[x.person].nat!=='Indian'))notes.push('Meet & greet');
-    const hp=h=>{const dt=new Date(U(s.date+'T'+s.dep).getTime()-h*36e5);return fdShort(dt.toISOString().slice(0,10))+' '+dt.toISOString().slice(11,16)};
-    if(mode!=='Arrival Delhi')notes.push('Hotel pick-up ~ '+hp(s.intl?4:3));
-    lines.push(`• ${fdShort(d)} ${t} | ${s.flight} ${tm||''} | ${ss.map(x=>x.person).join(', ')} | ${veh(ss.length)}${notes.length?' | '+notes.join(', '):''}`);
-    return `<tr><td>${fdShort(d)} <b>${t}</b></td><td>${esc(s.airline)} ${esc(s.flight)}</td><td>${esc(tm)}</td><td>${ss.length}</td><td>${ss.map(x=>`<a href="#" data-p="${esc(x.person)}" style="color:inherit">${esc(x.person)}</a>`).join(', ')}</td><td>${veh(ss.length)}</td><td>${notes.join(' · ')}</td></tr>`}).join('');
-  $('#wa').value=`*IRL ${mode==='Arrival Delhi'?'Delhi arrivals':mode==='Departure Delhi'?'Delhi departures':'Mumbai departures'}${day?' - '+fd(day):''}*\n`+lines.join('\n')}
-$('#pday').onchange=renderPickup;$('#pmode').onchange=renderPickup;
-$('#pt').onclick=e=>{const a=e.target.closest('[data-p]');if(a){e.preventDefault();openPerson(a.dataset.p)}};
-$('#copywa').onclick=()=>{const t=$('#wa');t.select();try{navigator.clipboard.writeText(t.value);$('#copied').textContent='Copied'}catch(e){document.execCommand('copy');$('#copied').textContent='Copied'}setTimeout(()=>$('#copied').textContent='',1800)};
-function renderAlerts(){
-  $('#sevchips').innerHTML=['High','Medium','Low'].map(s=>`<span class="chip" role="button" aria-pressed="${S.sev.has(s)}" data-s="${s}">${s} (${alerts.filter(a=>a.sev===s).length})</span>`).join('');
-  const q=S.q;
-  const rows=alerts.filter(a=>S.sev.has(a.sev)&&(!q||(a.who+a.title+a.detail+a.cat).toLowerCase().includes(q)));
-  $('#at').innerHTML='<tr><th>Done</th><th>Priority</th><th>Type</th><th>Who</th><th>Issue</th><th>Suggested action</th></tr>'+rows.map(a=>{const id=a.title+a.who;return `<tr style="${done[id]?'opacity:.45':''}"><td><input type="checkbox" data-d="${A(id)}" ${done[id]?'checked':''} aria-label="Mark done"></td><td><span class="sev ${a.sev}">${a.sev==='High'?'▲':a.sev==='Medium'?'◆':'●'} ${a.sev}</span></td><td>${esc(a.cat)}</td><td>${esc(a.who)}</td><td><b>${esc(a.title)}</b><br><span class="note">${esc(a.detail)}</span></td><td>${esc(a.action)}</td></tr>`}).join('')}
-$('#sevchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;const s=c.dataset.s;S.sev.has(s)?S.sev.delete(s):S.sev.add(s);render()};
-$('#at').onchange=e=>{const c=e.target.closest('[data-d]');if(c){if(c.checked)confetti(80);done[c.dataset.d]=c.checked;try{localStorage.setItem('irl-done',JSON.stringify(done))}catch(x){}render()}};
+
+function statusOf(name,cat){
+  const p=pByName[name];
+  if(!p){ if(PENDING.includes(name))return{t:'Tickets on the way 🎫',c:'wait'};
+    if(LOCALS.has(name)&&S.round==='R3')return{t:'Local, no flight needed 🏠',c:'ok'};
+    return{t:cat==='Driver'?'No ticket yet':'No ticket yet',c:'no'}}
+  const a=p.legs.filter(l=>l.kind==='Arrival Delhi').slice(-1)[0],d=p.legs.find(l=>l.kind==='Departure Delhi'),m=p.legs.find(l=>l.kind==='Departure Mumbai');
+  const full=ALLP.find(x=>x.name===name),exitsM=full&&full.legs.some(l=>l.kind==='Departure Mumbai');
+  if(S.round==='R4')return m?{t:'Leaves Mumbai '+fdShort(m.date)+' '+m.dep,c:'ok'}:{t:'No ticket yet',c:'no'};
+  if(a&&!d&&!exitsM&&p.category==='Driver')return{t:'Lands '+fdShort(a.arr_date)+' '+a.arr+' · return missing',c:'wait'};
+  if(!a&&S.round!=='R4')return{t:'Inbound missing · leaves '+(d?fdShort(d.date)+' '+d.dep:'?'),c:'wait'};
+  return{t:'Lands '+fdShort(a.arr_date)+' '+a.arr,c:'ok'}}
+const stChip=s=>`<span class="st ${s.c==='ok'?'ok':s.c==='wait'?'part':'no'}">${s.c==='ok'?'✓':s.c==='wait'?'⏳':'✗'} ${esc(s.t)}</span>`;
+function personRow(name,cat,sub,extra){const s=statusOf(name,cat);return `<div class="tm prow" data-p="${esc(name)}"><span class="who">${avatar(name,cat,'sm')}<span><b>${esc(name)}</b><br><span class="note">${sub||''}</span></span></span>${stChip(s)}</div>`}
+const PGROUPS=[['all','Everyone'],['Driver','Drivers'],['Race Engineer','Race engineers'],['Social Media & PR','PR & Social'],['Team Coordinator','Coordinators']];
+function renderPeople(){
+  const q=S.pq.toLowerCase(),f=S.pg,dd=DUTY[S.duty];
+  const hit=(n,extra)=>!q||(n+' '+(extra||'')).toLowerCase().includes(q);
+  const showG=g=>f==='all'||f===g;
+  const all=n=>ALLP.find(p=>p.name===n);
+  let html=`<div class="card" style="margin-bottom:14px"><div class="note" style="margin-bottom:8px">Everyone in one place. Tap a person to see their full trip.</div>
+   <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div></div>`;
+  if(showG('Driver')){
+    const byTeam={};LINE.forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
+    if(S.round!=='R4'||true) html+=`<div class="pill-row" style="margin:0 0 10px"><span class="note" style="align-self:center">Team coordinator on duty:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===S.duty}" data-duty="${k}">${v.label}</span>`).join('')}</div>`;
+    html+=`<div class="grid cols2">`+Object.entries(byTeam).map(([t,ms])=>{
+      const rows=ms.filter(m=>hit(m.name,t+' '+(m.nat||''))).map(m=>personRow(m.name,'Driver',`${esc(m.nat||'')}${m.no?' · #'+m.no:''}`)).join('');
+      if(!rows)return '';
+      return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<div><h4>${TEAMEMO[t]||''} ${esc(t)}</h4><div class="note">${MANAGERS[t]?'Team manager: <b>'+esc(MANAGERS[t])+'</b> · ':''}${esc(dd.label)}: <b>${esc(dd.m[t]||'TBC')}</b></div></div></div>${rows}</div>`}).join('')+`</div>`}
+  const grp=(title,list,sub)=>{const rows=list.filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,sub?sub(p):esc(roleOf(p)))).join('');return rows?`<h3 style="margin:18px 0 8px">${title}</h3><div class="card">${rows}</div>`:''};
+  const byCat=c=>ALLP.filter(p=>p.category===c).sort((a,b)=>a.name.localeCompare(b.name));
+  if(showG('Race Engineer'))html+=grp('🔧 Race engineers',byCat('Race Engineer'));
+  if(showG('Social Media & PR')){
+    html+=grp('📣 PR team',ALLP.filter(p=>p.group==='PR Team').sort((a,b)=>a.name.localeCompare(b.name)));
+    const soc=ALLP.filter(p=>p.group==='Social Media (Percept)').sort((a,b)=>a.name.localeCompare(b.name));
+    const pend=PENDING.filter(n=>hit(n,'sportz'));
+    const rows=soc.filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,'Percept team')).join('')+pend.map(n=>personRow(n,'Social Media & PR','Sportz Interactive team')).join('');
+    if(rows)html+=`<h3 style="margin:18px 0 8px">📸 Social media</h3><div class="card">${rows}</div>`}
+  if(showG('Team Coordinator'))html+=grp('🧢 Team coordinators',byCat('Team Coordinator'),p=>`${esc(roleOf(p))}<br>${['Fri','Sat'].map(d=>{const ts=Object.entries(DUTY[d].m).filter(([t,w])=>w===p.name).map(([t])=>t.replace(' Bengaluru','').replace(' JA Racing','').replace(' Turbo Riders',' (CTR)'));return ts.length?`<span class="tag" style="margin:2px 3px 0 0">${d}: ${ts.map(esc).join(' + ')}</span>`:''}).join('')}`);
+  $('#p-people').innerHTML=html||'<div class="card note" style="text-align:center;font-size:16px;padding:30px">🕵️ Nobody matches that.</div>';
+  const inp=$('#pq');if(inp){inp.oninput=e=>{S.pq=e.target.value;const pos=e.target.selectionStart;renderPeople();const n=$('#pq');n.focus();n.setSelectionRange(pos,pos)}}}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-pg]');if(g){S.pg=g.dataset.pg;render();return}
+  const d=e.target.closest('[data-duty]');if(d){S.duty=d.dataset.duty;render();return}
+  const r=e.target.closest('.prow');if(r)openPerson(r.dataset.p)});
+/* ---- flights ---- */
+const KIND_LAB={'Arrival Delhi':'Landing in Delhi','Departure Delhi':'Leaving Delhi','Departure Mumbai':'Leaving Mumbai'};
+const vehOf=n=>n<=2?'Sedan':n<=4?'Innova Crysta':n<=7?'Crysta + Sedan':'Tempo Traveller';
+function flightGroups(){
+  const kinds=S.round==='R4'?['Departure Mumbai']:S.round==='R3'?['Arrival Delhi','Departure Delhi']:['Arrival Delhi','Departure Delhi','Departure Mumbai'];
+  const fk=kinds.includes(S.fk)?S.fk:kinds[0];S.fk=fk;
+  const arr=fk==='Arrival Delhi',kd=s=>arr?s.arr_date:s.date;
+  const all=segs.filter(s=>s.kind===fk);
+  const days=[...new Set(all.map(kd))].sort();
+  if(S.fd&&!days.includes(S.fd))S.fd='';
+  const q=S.fq.toLowerCase();
+  const rows=all.filter(s=>(!S.fd||kd(s)===S.fd)&&(!q||(s.person+' '+s.flight+' '+s.airline+' '+s.frm_city+' '+s.to_city).toLowerCase().includes(q)));
+  const g={};rows.forEach(s=>{const k=kd(s)+' '+(arr?s.arr:s.dep)+'|'+s.flight;(g[k]=g[k]||[]).push(s)});
+  return{kinds,fk,arr,days,groups:Object.keys(g).sort().map(k=>g[k]),kd}}
+function flightNotes(ss,arr){const s=ss[0],t=arr?s.arr:s.dep,n=[];
+  if(arr&&t<'06:00')n.push('🌙 Night pickup');
+  if(arr&&ss.some(x=>{const p=pByName[x.person];return p&&p.nat&&p.nat!=='Indian'&&p.category==='Driver'}))n.push('🌍 Meet & greet');
+  if(!arr&&t<'06:00')n.push('🌙 Very early');
+  if(!arr){const dt=new Date(U(s.date+'T'+s.dep).getTime()-(s.intl?4:3)*36e5);n.push('🏨 Leave hotel ~ '+fdShort(dt.toISOString().slice(0,10))+' '+dt.toISOString().slice(11,16))}
+  return n}
+function renderFlights(){
+  const F=flightGroups();
+  const single=F.kinds.length===1;
+  let html=`<div class="card" style="margin-bottom:14px"><div class="note" style="margin-bottom:8px">Who is landing or leaving, and when. Use this for airport pickups and drops.</div>
+   <div class="pill-row" style="margin:0 0 8px">${F.kinds.map(k=>`<span class="chip big" role="button" tabindex="0" aria-pressed="${k===F.fk}" data-fk="${esc(k)}">${k==='Arrival Delhi'?'🛬':'🛫'} ${KIND_LAB[k]}</span>`).join('')}</div>
+   <div class="pill-row" style="margin:0"><span class="chip" role="button" tabindex="0" aria-pressed="${!S.fd}" data-fd="">All days</span>${F.days.map(d=>`<span class="chip" role="button" tabindex="0" aria-pressed="${S.fd===d}" data-fd="${d}">${fd(d)}</span>`).join('')}</div>
+   <div class="pill-row" style="margin:10px 0 0"><input type="search" id="fq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name or flight…" value="${esc(S.fq)}" aria-label="Search flights"><button class="btn" id="fcopy">📋 Copy for WhatsApp</button><button class="btn" id="fcsv">⬇️ Download list</button><span class="note" id="fmsg"></span></div></div>`;
+  html+=F.groups.map(ss=>{const s=ss[0],d=F.kd(s),t=F.arr?s.arr:s.dep,term=F.arr?s.arr_term:s.dep_term,notes=flightNotes(ss,F.arr);
+    const place=F.arr?`from ${esc(s.frm_city)}`:`to ${esc(s.to_city)}`;
+    return `<div class="card fl"><div class="ft"><b>${esc(t)}</b><span>${fdShort(d)}</span></div><div class="fb"><div class="fh"><b>${esc(s.airline)} ${esc(s.flight)}</b> <span class="note">${place}${term?' · '+esc(term):''}</span></div>
+     <div class="fp">${ss.map(x=>`<span class="pp" data-p="${esc(x.person)}">${avatar(x.person,x.category,'xs')}${esc(x.person)}</span>`).join('')}</div>
+     <div class="fn"><span class="tag">🚗 ${vehOf(ss.length)} for ${ss.length}</span>${notes.map(n=>`<span class="tag">${esc(n)}</span>`).join('')}</div></div></div>`}).join('')||'<div class="card note" style="text-align:center;font-size:16px;padding:30px">🕵️ No flights match.</div>';
+  $('#p-flights').innerHTML=html;
+  const inp=$('#fq');inp.oninput=e=>{S.fq=e.target.value;const pos=e.target.selectionStart;renderFlights();const n=$('#fq');n.focus();n.setSelectionRange(pos,pos)};
+  $('#fcopy').onclick=()=>{const txt=`*IRL ${KIND_LAB[F.fk]}${S.fd?' - '+fd(S.fd):''}*\n`+F.groups.map(ss=>{const s=ss[0];return `• ${fdShort(F.kd(s))} ${F.arr?s.arr:s.dep} | ${s.flight} ${(F.arr?s.arr_term:s.dep_term)||''} | ${ss.map(x=>x.person).join(', ')} | ${vehOf(ss.length)}`}).join('\n');try{navigator.clipboard.writeText(txt);$('#fmsg').textContent='Copied ✔'}catch(e){$('#fmsg').textContent='Copy not allowed here'}setTimeout(()=>$('#fmsg').textContent='',1800)};
+  $('#fcsv').onclick=()=>{const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const rows=[['Name','Group','Date','Time','Flight','Terminal','From','To']].concat(F.groups.flat().map(s=>[s.person,s.category,F.kd(s),F.arr?s.arr:s.dep,s.airline+' '+s.flight,F.arr?s.arr_term:s.dep_term,s.frm_city,s.to_city]));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='irl_flights.csv';a.click()}}
+document.addEventListener('click',e=>{const k=e.target.closest('[data-fk]');if(k){S.fk=k.dataset.fk;S.fd='';render();return}const d=e.target.closest('[data-fd]');if(d){S.fd=d.dataset.fd;render();return}const p=e.target.closest('.pp');if(p)openPerson(p.dataset.p)});
 /* ROLES: edit here when assignments change */
 const MANAGERS={'Chennai Turbo Riders':'Shreyanth S'};
 const STAFF_ROLE={'Shreyanth S':'Team Coordinator · Team Manager, Chennai Turbo Riders (CTR)'};
@@ -522,23 +516,9 @@ const DUTY={Fri:{label:'Fri 27 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyd
             Sat:{label:'Sat 28 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyderabad Blackbirds':'Neehal Kanumuri','Speed Demons Delhi':'Deshik Gurram','Goa Aces JA Racing':'Ashish Chapekar',"Kichcha's Kings Bengaluru":'Parth Holkar','Kolkata Royal Tigers':'Deshik Gurram'}}};
 const PENDING=['Shahid','Kaustabh'];
 const TEAMEMO={'Chennai Turbo Riders':'♞','Hyderabad Blackbirds':'🐦‍⬛','Speed Demons Delhi':'😈',"Kichcha's Kings Bengaluru":'🦁','Goa Aces JA Racing':'🏖️','Kolkata Royal Tigers':'🐯'};
-function renderRoles(){
-  const day=S.duty||'Fri',dd=DUTY[day];
-  const byTeam={};DATA.L4.concat(DATA.L3.filter(x=>!DATA.L4.some(y=>y.name===x.name))).forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
-  const grp=c=>ALLP.filter(p=>p.category===c).sort((a,b)=>a.name.localeCompare(b.name));
-  const person=p=>`<div class="tm"><span class="who">${avatar(p.name,p.category,'sm')}<span><b>${esc(p.name)}</b><br><span class="note">${esc(roleOf(p))}</span></span></span></div>`;
-  const duties=n=>['Fri','Sat'].map(d=>{const ts=Object.entries(DUTY[d].m).filter(([t,w])=>w===n).map(([t])=>t.replace(' Bengaluru','').replace(' JA Racing','').replace(' Turbo Riders',' (CTR)'));return ts.length?`<span class="tag" style="margin:2px 3px 0 0">${d}: ${ts.map(esc).join(' + ')}</span>`:''}).join('');
-  $('#p-roles').innerHTML=`<div class="pill-row"><span class="note" style="align-self:center">Race-weekend duty roster. Pick a day:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===day}" data-duty="${k}">${v.label}</span>`).join('')}</div>
-  <h3 style="margin:6px 0">🏎️ Driver teams and who has their back</h3><div class="grid cols2">${Object.entries(byTeam).map(([t,ms])=>{const who=dd.m[t];const me=who==='Shreyanth S';return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<div><h4>${TEAMEMO[t]||''} ${esc(t)}</h4>${MANAGERS[t]?`<div class="note">Team manager: <b>${esc(MANAGERS[t])}</b></div>`:''}</div></div><div class="dutyc"><span class="av sm" style="background:var(--cat-t)">${ini(who)}</span><div><div class="note" style="line-height:1.1">${dd.label} coordinator</div><b>${esc(who)}</b></div></div>${ms.map(m=>`<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}${LOCALS.has(m.name)?' · local 🏠':''}</span></span></span></div>`).join('')}</div>`}).join('')}</div>
-  <h3 style="margin:18px 0 6px">🧢 Team coordinators</h3><div class="grid cols2">${grp('Team Coordinator').map(p=>`<div class="card"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category)}<span><b>${esc(p.name)}</b><br><span class="note">${esc(roleOf(p))}</span><br>${duties(p.name)}</span></div></div>`).join('')}</div>
-  <h3 style="margin:18px 0 6px">🔧 Race engineers</h3><div class="grid cols2"><div class="card">${grp('Race Engineer').map(person).join('')||'<div class="note">None yet</div>'}</div></div>
-  <h3 style="margin:18px 0 6px">📣 PR team</h3><div class="grid cols2"><div class="card">${ALLP.filter(p=>p.group==='PR Team').sort((a,b)=>a.name.localeCompare(b.name)).map(person).join('')}</div></div>
-  <h3 style="margin:18px 0 6px">📸 Social media</h3><div class="grid cols2">
-   <div class="card"><div class="note" style="margin-bottom:4px"><b>Percept team</b></div>${ALLP.filter(p=>p.group==='Social Media (Percept)').sort((a,b)=>a.name.localeCompare(b.name)).map(person).join('')}</div>
-   <div class="card"><div class="note" style="margin-bottom:4px"><b>Sportz Interactive team</b></div>${PENDING.map(n=>`<div class="tm"><span class="who">${avatar(n,'Social Media & PR','sm')}<span><b>${esc(n)}</b><br><span class="note">Tickets on the way 🎫⏳</span></span></span></div>`).join('')}</div></div>`}
-document.addEventListener('click',e=>{const c=e.target.closest('[data-duty]');if(c){S.duty=c.dataset.duty;S._k='';render()}});
 let TODO=DATA.todo||[];let tdone={};try{tdone=JSON.parse(localStorage.getItem('irl-todo')||'{}')}catch(e){}
 const isDone=t=>t.id in tdone?tdone[t.id]:t.done;
+function todoRow(t){const today=new Date(Date.now()+19800000).toISOString().slice(0,10);const d=Math.round((U(t.due)-U(today))/864e5);const c=isDone(t)?'':d<0?'over':d<=2?'soon':'';return `<div class="ti ${isDone(t)?'done':''}" data-id="${t.id}" role="checkbox" aria-checked="${isDone(t)}" tabindex="0"><span class="cb">${isDone(t)?'✓':''}</span><div><div class="tx">${esc(t.text)}</div><div class="meta"><span class="tag">${t.owner==='Simran'?'🧑‍💼':'🧢'} ${esc(t.owner)}</span><span class="due ${c}">📅 ${fdShort(t.due)}${isDone(t)?'':d<0?' · overdue':d===0?' · today':d<=3?' · in '+d+'d':''}</span></div></div></div>`}
 function renderTodo(){
   const f=S.tdf||{owner:'',hide:false};S.tdf=f;
   const items=TODO.filter(t=>S.round==='All'||t.round===S.round||t.round==='Both');
@@ -575,17 +555,14 @@ function enterAnim(){const key=S.tab+S.round;if(S._k===key)return;S._k=key;const
   p.querySelectorAll('.kpi .v').forEach(e=>{const n=+e.textContent;if(!isNaN(n)&&e.textContent.trim()!=='')countUp(e,n)});
   setTimeout(()=>p.classList.remove('enter'),2500)}
 function render(){
-  applyRound();fillTeams();
+  applyRound();
   $$('#rounds button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===S.round));
   $$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===S.tab));
   $$('.panel').forEach(p=>p.classList.toggle('hide',p.id!=='p-'+S.tab));
-  $$('#catchips .chip').forEach(c=>c.setAttribute('aria-pressed',S.cats.has(c.dataset.c)));
-  $('#filters').classList.toggle('hide',['roles','costs','todo'].includes(S.tab));
-  $('#fcount').textContent=fPeople().length+' of '+people.length+' people with '+(S.round==='All'?'':S.round+' ')+'tickets';
-  ({overview:renderOverview,timeline:renderTimeline,moves:renderMoves,people:renderPeople,teams:renderTeams,pickup:renderPickup,alerts:renderAlerts,roles:renderRoles,todo:renderTodo,costs:()=>COSTS&&renderCosts()})[S.tab]();
-  stackify('#at');stackify('#pt');enterAnim();
+  ({home:renderHome,people:renderPeople,flights:renderFlights,timeline:renderTimeline,todo:renderTodo,costs:()=>COSTS&&renderCosts()})[S.tab]();
+  enterAnim();
   try{history.replaceState(null,'','#'+S.tab)}catch(e){}}
-applyRound();fillTeams();const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))S.tab=h;
+applyRound();const h=location.hash.slice(1)==='overview'?'home':location.hash.slice(1);if(TABS.some(t=>t[0]===h))S.tab=h;
 addEventListener('resize',()=>{if(S.tab==='timeline')renderTimeline()});
 render();
 </script>
