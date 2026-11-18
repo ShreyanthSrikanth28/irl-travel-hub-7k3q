@@ -464,7 +464,7 @@ function renderPeople(){
     const pend=PENDING.filter(n=>hit(n,'sportz'));
     const rows=soc.filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,'Percept team')).join('')+pend.map(n=>personRow(n,'Social Media & PR','Sportz Interactive team')).join('');
     if(rows)html+=`<h3 style="margin:18px 0 8px">📸 Social media</h3><div class="card">${rows}</div>`}
-  if(showG('Team Coordinator'))html+=grp('🧢 Team coordinators',byCat('Team Coordinator'),p=>`${esc(roleOf(p))}<br>${['Fri','Sat'].map(d=>{const ts=Object.entries(DUTY[d].m).filter(([t,w])=>w===p.name).map(([t])=>t.replace(' Bengaluru','').replace(' JA Racing','').replace(' Turbo Riders',' (CTR)'));return ts.length?`<span class="tag" style="margin:2px 3px 0 0">${d}: ${ts.map(esc).join(' + ')}</span>`:''}).join('')}`);
+  if(showG('Team Coordinator'))html+=grp('🧢 Team coordinators',byCat('Team Coordinator'),p=>`${esc(roleOf(p))}<br>${['Fri','Sat'].map(d=>{const ts=Object.entries(DUTY[d].m).filter(([t,w])=>w===p.name).map(([t])=>t);return ts.length?`<span class="tag" style="margin:2px 3px 0 0">${d}: ${ts.map(esc).join(' + ')}</span>`:''}).join('')}`);
   $('#p-people').innerHTML=html||'<div class="card note" style="text-align:center;font-size:16px;padding:30px">🕵️ Nobody matches that.</div>';
   const inp=$('#pq');if(inp){inp.oninput=e=>{S.pq=e.target.value;const pos=e.target.selectionStart;renderPeople();const n=$('#pq');n.focus();n.setSelectionRange(pos,pos)}}}
 document.addEventListener('click',e=>{
@@ -510,7 +510,7 @@ function renderFlights(){
 document.addEventListener('click',e=>{const k=e.target.closest('[data-fk]');if(k){S.fk=k.dataset.fk;S.fd='';render();return}const d=e.target.closest('[data-fd]');if(d){S.fd=d.dataset.fd;render();return}const p=e.target.closest('.pp');if(p)openPerson(p.dataset.p)});
 /* ROLES: edit here when assignments change */
 const MANAGERS={'Chennai Turbo Riders':'Shreyanth S'};
-const STAFF_ROLE={'Shreyanth S':'Team Coordinator · Team Manager, Chennai Turbo Riders (CTR)'};
+const STAFF_ROLE={'Shreyanth S':'Assistant Driver Coordinator · Team Coordinator · Team Manager (CTR)'};
 const roleOf=p=>STAFF_ROLE[p.name]||p.group||p.category;
 const DUTY={Fri:{label:'Fri 27 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyderabad Blackbirds':'Deshik Gurram','Speed Demons Delhi':'Deshik Gurram','Goa Aces JA Racing':'Parth Holkar',"Kichcha's Kings Bengaluru":'Parth Holkar','Kolkata Royal Tigers':'Ashish Chapekar'}},
             Sat:{label:'Sat 28 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyderabad Blackbirds':'Neehal Kanumuri','Speed Demons Delhi':'Deshik Gurram','Goa Aces JA Racing':'Ashish Chapekar',"Kichcha's Kings Bengaluru":'Parth Holkar','Kolkata Royal Tigers':'Deshik Gurram'}}};
