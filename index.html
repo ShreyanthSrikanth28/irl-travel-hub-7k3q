@@ -142,7 +142,7 @@ nav.tabs{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}nav.tabs 
 @keyframes growY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes growX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes drive{from{transform:translateX(-80px)}to{transform:translateX(calc(100vw + 80px))}}
-@keyframes zoom{from{transform:translateX(-120px) rotate(-4deg)}to{transform:translateX(calc(100vw + 120px)) rotate(-4deg)}}
+@keyframes zoom{from{transform:translateX(-120px) rotate(-4deg) scaleX(-1)}to{transform:translateX(calc(100vw + 120px)) rotate(-4deg) scaleX(-1)}}
 @keyframes shine{0%{background-position:0 0}100%{background-position:300% 0}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 @keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) scale(1.12)}75%{transform:rotate(8deg) scale(1.12)}}
@@ -306,17 +306,17 @@ $('#irllogo').onclick=()=>{zoomCar();setTimeout(()=>confetti(120),500)};
   const fin=()=>{L.classList.add('out');setTimeout(()=>L.remove(),700);};
   L.onclick=fin;
   const iv=setInterval(()=>{if(i<5){lamps[i++].classList.add('on');m.textContent=['Get ready…','Almost…','Steady…','Wait for it…','…'][i-1]}else{clearInterval(iv);lamps.forEach(l=>l.classList.remove('on'));m.textContent='LIGHTS OUT AND AWAY WE GO! 🏁';setTimeout(()=>{fin();setTimeout(()=>confetti(90),300)},650)}},300)})();
-function countUp(el,to,dur=900){if(REDUCE||isNaN(to)){el.textContent=to;return}const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(to*e);if(k<1)requestAnimationFrame(f)})(t0)}
+function countUp(el,to,dur=900){el.textContent=to;if(REDUCE||isNaN(to)||to===0||document.hidden)return;const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?Math.round(to*e):to;if(k<1)requestAnimationFrame(f);else el.textContent=to})(t0);setTimeout(()=>{el.textContent=to},dur+300)}
 const daysTo=iso=>Math.ceil((U(iso).getTime()-(Date.now()+19800000))/864e5);
 function hero(){
   const nowIST=Date.now()+19800000;
   const nxt=segs.filter(s=>s.kind==='Arrival Delhi'&&U(s.dt_arr).getTime()>nowIST).sort((a,b)=>a.dt_arr.localeCompare(b.dt_arr))[0]
           ||segs.filter(s=>s.kind==='Departure Mumbai'&&U(s.dt_dep).getTime()>nowIST).sort((a,b)=>a.dt_dep.localeCompare(b.dt_dep))[0];
-  const cd=(l,iso)=>{const d=daysTo(iso);return `<div><b data-count="${Math.max(d,0)}">0</b>${d>0?'days to '+l:d===0?l+' is TODAY 🔥':l+' ✅ done'}</div>`};
+  const cd=(l,iso)=>{const d=daysTo(iso);return `<div><b data-count="${Math.max(d,0)}">${Math.max(d,0)}</b>${d>0?'days to '+l:d===0?l+' is TODAY 🔥':l+' ✅ done'}</div>`};
   const greet=['Hey team! 👋','Pit wall reporting in 🎙️','Lights out, spreadsheets in 🚦','Welcome to race control 🏁'][new Date().getDate()%4];
   const pack=new Set(segs.map(s=>s.person)).size;
   return `<div class="hero"><div class="flagbg"></div><h2>${greet}</h2><p>${S.round==='R4'?'Navi Mumbai night race: heading home plans are ready, arrivals still landing in our inbox.':S.round==='R3'?'Delhi is about to get loud. Here is where all '+pack+' people are flying in and out.':'The whole IRL travel story, from the first landing to the last departure.'}</p>
-  <div class="cd">${cd('R3 lights out','2026-11-27')}${cd('R4 night race','2026-12-04')}<div><b data-count="${pack}">0</b>people on the move ✈️</div></div>
+  <div class="cd">${cd('R3 lights out','2026-11-27')}${cd('R4 night race','2026-12-04')}<div><b data-count="${pack}">${pack}</b>people on the move ✈️</div></div>
   ${nxt?`<div class="next">⏭️ <b>Next up:</b> ${esc(nxt.person)} ${nxt.kind==='Arrival Delhi'?'lands at Delhi':'leaves Mumbai'} ${fd(nxt.kind==='Arrival Delhi'?nxt.arr_date:nxt.date)} ${nxt.kind==='Arrival Delhi'?nxt.arr:nxt.dep} (${esc(nxt.flight)})</div>`:''}</div>`}
 /* theme */
 const root=document.documentElement;
