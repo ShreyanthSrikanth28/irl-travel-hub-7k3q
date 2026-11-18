@@ -466,7 +466,7 @@ function journey(name,cat){
 const LVEMO={ok:'🟢',part:'🟡',no:'🔴'};
 const stChip=j=>`<span class="st ${j.lv==='ok'?'ok':j.lv==='part'?'part':'no'}">${LVEMO[j.lv]} ${esc(j.txt)}</span>`;
 function personRow(name,cat,sub,extra){const j=journey(name,cat);
-  const pills=j.items.length?`<div class="pills">${j.items.map(x=>`<span class="pill ${x.done?'ok':'no'}">${x.done?'✓':'✗'} ${esc(x.t)}</span>`).join('')}</div>`:'';
+  const pills=(j.items.length>1||(j.items.length&&!/local|Based in/.test(j.items[0].t)))?`<div class="pills">${j.items.map(x=>`<span class="pill ${x.done?'ok':'no'}">${x.done?'✓':'✗'} ${esc(x.t)}</span>`).join('')}</div>`:'';
   return `<div class="tm prow lv-${j.lv}" data-p="${esc(name)}"><span class="who">${avatar(name,cat,'sm')}<span><b>${esc(name)}</b><br><span class="note">${sub||''}</span>${pills}</span></span>${stChip(j)}</div>`}
 const PGROUPS=[['all','Everyone'],['Driver','Drivers'],['Driver Coordinator','Event coordination'],['UK Race Engineers','Race engineers'],['Social Media & PR','PR & Social'],['Team Coordinator','Team coordinators']];
 function renderPeople(){
