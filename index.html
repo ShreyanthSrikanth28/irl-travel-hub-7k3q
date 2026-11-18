@@ -218,9 +218,11 @@ nav.tabs button:hover{transform:translateY(-1px);color:#fff}
 @media(max-width:600px){.fl{flex-direction:column;gap:8px}.fl .ft{display:flex;gap:8px;align-items:baseline;justify-content:flex-start;text-align:left;padding:6px 10px;min-width:0;width:max-content}.fl .ft b{font-size:18px}}
 .fl-need{display:flex;gap:14px;flex-wrap:wrap}.fl-need>div{background:var(--surface2);border-radius:10px;padding:8px 14px;flex:1;min-width:200px}
 .btn.mini{padding:3px 10px;font-size:12px;border-radius:99px}
-.prow .st{flex:none;white-space:nowrap;margin-left:6px}.pills{margin-top:3px}.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;margin:2px 4px 0 0;font-weight:600}
-.pill.ok{background:rgba(12,163,12,.13);color:var(--good)}.pill.no{background:rgba(208,59,59,.12);color:var(--crit)}
-.prow.lv-ok{border-left:4px solid var(--good)}.prow.lv-part{border-left:4px solid var(--warn)}.prow.lv-no{border-left:4px solid var(--crit)}
+.prow .st{flex:none;white-space:nowrap;margin-left:6px}.pills{margin-top:3px;line-height:1.6}.pt{display:block;font-size:12px;font-weight:600}.sepdot{color:var(--muted)}
+.pt.ok,.st.ok{color:var(--good)}.pt.no,.st.no{color:var(--crit)}.st.part{color:#b27a00}
+:root[data-theme=dark] .st.part{color:#fab219}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .st.part{color:#fab219}}
+.prow .st{flex:none;white-space:nowrap;margin-left:6px;font-weight:700}
 @media print{header.top,.filters,nav.tabs,.btn{display:none!important}.panel{display:block!important;page-break-after:always}body{background:#fff}}
 </style>
 </head>
@@ -281,7 +283,7 @@ function applyRound(){
   people=ALLP.map(p=>({...p,legs:p.legs.filter(ok)})).filter(p=>p.legs.length);
   segs=ALLS.filter(ok);alerts=ALLA.filter(a=>r==='All'||a.round===r||a.round==='Both');
   pByName=Object.fromEntries(people.map(p=>[p.name,p]));LINE=RND[r].lt;
-  document.querySelector('.logo small').textContent=RND[r].sub+' · '+(r==='R4'?'inbound tickets on the way ⏳':'live and rolling 🟢');
+  document.querySelector('.logo small').textContent=RND[r].sub+' · '+(r==='R4'?'inbound tickets on the way':'live and rolling');
   document.title='IRL '+RND[r].n+' Travel Command Centre';}
 document.getElementById('asof').textContent='18 Nov 2026';
 if(COSTS)$('#conf').classList.remove('hide');
@@ -435,7 +437,7 @@ $('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};document.addEventList
 
 function journey(name,cat){
   if(name==='Simran')return{lv:'no',txt:'Tickets not booked yet',items:[]};
-  if(name==='Shreyanth S')return{lv:'no',txt:'Ticket to be revised ✏️',items:[]};
+  if(name==='Shreyanth S')return{lv:'no',txt:'Ticket to be revised',items:[]};
   if(PENDING.includes(name)||PENDING_UK.includes(name))return{lv:'no',txt:'Tickets not booked yet',items:[]};
   const R=S.round,full=ALLP.find(x=>x.name===name),L=full?full.legs:[];
   const find=f=>L.filter(f).sort((a,b)=>a.dt_dep.localeCompare(b.dt_dep));
@@ -443,7 +445,7 @@ function journey(name,cat){
   const mumExit=!!hB,mumbaiBased=!!full&&!hB&&!!dD&&dD.to==='BOM',local=LOCALS.has(name);
   const inR4=cat!=='Driver'||DATA.L4.some(x=>x.name===name);
   const it=(done,txtDone,txtPend)=>({done:!!done,t:done?txtDone:txtPend});
-  const r3=local?[{done:true,t:'R3: local, no flight needed 🏠'}]:[
+  const r3=local?[{done:true,t:'R3: local, no flight needed'}]:[
     it(aD,aD&&'Lands '+fdShort(aD.arr_date)+' '+aD.arr,'Flight to Delhi'),
     it(dD,dD&&(mumExit?'Delhi → Mumbai '+fdShort(dD.date):'Leaves Delhi '+fdShort(dD.date)+' '+dD.dep),mumExit?'Delhi → Mumbai flight':'Flight home from Delhi')];
   const hbTxt=hB&&'Leaves Mumbai '+fdShort(hB.date)+' '+hB.dep;
@@ -451,7 +453,7 @@ function journey(name,cat){
   if(R==='R3')items=r3;
   else if(R==='R4'){
     if(!inR4)items=[];
-    else if(mumbaiBased)items=[{done:true,t:'Based in Mumbai 🏠'}];
+    else if(mumbaiBased)items=[{done:true,t:'Based in Mumbai'}];
     else items=[it(tB,tB&&'To Mumbai '+fdShort(tB.date),'Flight to Mumbai'),it(hB,hbTxt,'Flight home from Mumbai')];
   }else{
     items=r3.slice();
@@ -463,11 +465,11 @@ function journey(name,cat){
   const onlyLocal=items.length===1&&items[0].t.startsWith('R3: local');
   const txt=lv==='ok'?(onlyLocal||mumbaiBased&&R==='R4'?items[0].t:'All booked'):lv==='part'?`${d} of ${items.length} booked`:'Nothing booked';
   return{lv,txt,items}}
-const LVEMO={ok:'🟢',part:'🟡',no:'🔴'};
-const stChip=j=>`<span class="st ${j.lv==='ok'?'ok':j.lv==='part'?'part':'no'}">${LVEMO[j.lv]} ${esc(j.txt)}</span>`;
+const stChip=j=>`<span class="st ${j.lv==='ok'?'ok':j.lv==='part'?'part':'no'}">${esc(j.txt)}</span>`;
 function personRow(name,cat,sub,extra){const j=journey(name,cat);
-  const pills=(j.items.length>1||(j.items.length&&!/local|Based in/.test(j.items[0].t)))?`<div class="pills">${j.items.map(x=>`<span class="pill ${x.done?'ok':'no'}">${x.done?'✓':'✗'} ${esc(x.t)}</span>`).join('')}</div>`:'';
-  return `<div class="tm prow lv-${j.lv}" data-p="${esc(name)}"><span class="who">${avatar(name,cat,'sm')}<span><b>${esc(name)}</b><br><span class="note">${sub||''}</span>${pills}</span></span>${stChip(j)}</div>`}
+  const show=j.items.length>1||(j.items.length&&!/local|Based in/.test(j.items[0].t));
+  const pills=show?`<div class="pills">${j.items.map(x=>`<span class="pt ${x.done?'ok':'no'}">${esc(x.t)}${x.done?'':' (pending)'}</span>`).join('')}</div>`:'';
+  return `<div class="tm prow" data-p="${esc(name)}"><span class="who">${avatar(name,cat,'sm')}<span><b>${esc(name)}</b><br><span class="note">${sub||''}</span>${pills}</span></span>${stChip(j)}</div>`}
 const PGROUPS=[['all','Everyone'],['Driver','Drivers'],['Driver Coordinator','Event coordination'],['UK Race Engineers','Race engineers'],['Social Media & PR','PR & Social'],['Team Coordinator','Team coordinators']];
 function renderPeople(){
   const q=S.pq.toLowerCase(),f=S.pg,dd=DUTY[S.duty];
@@ -475,7 +477,7 @@ function renderPeople(){
   const showG=g=>f==='all'||f===g;
   const all=n=>ALLP.find(p=>p.name===n);
   let html=`<div class="card" style="margin-bottom:14px"><div class="note" style="margin-bottom:8px">Everyone in one place. Tap a person to see their full trip.</div>
-   <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div><div class="note" style="margin-top:10px">Colour = every flight needed for the selected round(s): 🟢 all booked · 🟡 some booked, some pending · 🔴 nothing booked yet. The ticks below each name show what is done.</div></div>`;
+   <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div><div class="note" style="margin-top:10px">Text colour shows the whole trip for the selected round(s): <b style="color:var(--good)">green</b> = every flight booked · <b style="color:#b27a00">amber</b> = some booked, some pending · <b style="color:var(--crit)">red</b> = nothing booked yet. Under each name, green is booked and red is still pending.</div></div>`;
   if(showG('Driver')){
     const byTeam={};LINE.forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
     if(S.round!=='R4'||true) html+=`<div class="pill-row" style="margin:0 0 10px"><span class="note" style="align-self:center">Team coordinator on duty:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===S.duty}" data-duty="${k}">${v.label}</span>`).join('')}</div>`;
