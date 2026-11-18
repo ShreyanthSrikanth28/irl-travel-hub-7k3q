@@ -477,7 +477,7 @@ function renderPeople(){
   const showG=g=>f==='all'||f===g;
   const all=n=>ALLP.find(p=>p.name===n);
   let html=`<div class="card" style="margin-bottom:14px"><div class="note" style="margin-bottom:8px">Everyone in one place. Tap a person to see their full trip.</div>
-   <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div><div class="note" style="margin-top:10px">Text colour shows the whole trip for the selected round(s): <b style="color:var(--good)">green</b> = every flight booked · <b style="color:#b27a00">amber</b> = some booked, some pending · <b style="color:var(--crit)">red</b> = nothing booked yet. Under each name, green is booked and red is still pending.</div></div>`;
+   <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div></div>`;
   if(showG('Driver')){
     const byTeam={};LINE.forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
     if(S.round!=='R4'||true) html+=`<div class="pill-row" style="margin:0 0 10px"><span class="note" style="align-self:center">Team coordinator on duty:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===S.duty}" data-duty="${k}">${v.label}</span>`).join('')}</div>`;
