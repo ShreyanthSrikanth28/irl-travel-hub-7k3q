@@ -97,13 +97,46 @@ tr:hover td{background:var(--surface2)}
 textarea.wa{width:100%;min-height:150px;font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
 footer{max-width:1280px;margin:10px auto 30px;padding:0 16px;color:var(--muted);font-size:12px}
 .conf{background:#c8102e;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+@media(max-width:600px){
+ main{padding:10px}.hwrap{padding:8px 12px;gap:8px}.logo h1{font-size:15px}
+ .filters input[type=search]{min-width:0;width:100%}
+ .kpi .v{font-size:26px}.card{padding:12px}
+ #mt td:first-child,#mt th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;box-shadow:1px 0 0 var(--line)}
+ #mt th:first-child{background:var(--surface2);z-index:2}
+ #at,#pt{display:block}#at tbody,#pt tbody{display:block}
+ #at tr:first-child,#pt tr:first-child{display:none}
+ #at tr,#pt tr{display:block;padding:10px 12px;border-bottom:1px solid var(--line)}
+ #at td,#pt td{display:block;border:0;padding:2px 0;font-size:13px;white-space:normal}
+ #at td[data-l]::before,#pt td[data-l]::before{content:attr(data-l) ": ";font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+ #at td:first-child::before{content:''}
+ #at .tw,#pt .tw{max-height:none}
+ th,td{padding:6px 8px;font-size:12px}
+ .modal{padding:0}.modal .box{border-radius:0;min-height:100vh;padding:14px}
+ .step{grid-template-columns:70px 1fr}
+ .tm{flex-direction:column;align-items:flex-start;gap:2px}
+ #rounds button{padding:6px 10px}
+ .btn{padding:8px 12px}
+ input[type=checkbox]{width:20px;height:20px}
+}
+#mt td{white-space:nowrap}.tag{white-space:nowrap}
+nav.tabs{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}nav.tabs button{scroll-snap-align:start}
+@media(hover:none){.pc:hover{transform:none}}
+.av{width:44px;height:44px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;overflow:hidden;background:var(--cat-o);position:relative}
+.av img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.av.sm{width:30px;height:30px;font-size:11px}
+.av.lg{width:64px;height:64px;font-size:22px}
+.tb{width:34px;height:34px;border-radius:8px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#0b1f3a;overflow:hidden;position:relative}
+.tb img{width:100%;height:100%;object-fit:contain;background:#fff;position:absolute;inset:0;padding:2px}
+.pc .top{display:flex;gap:10px;align-items:center}
+.team .th{display:flex;gap:10px;align-items:center;margin-bottom:8px}.team .th h4{margin:0}
+.tm .who{display:flex;gap:8px;align-items:center}
 @media print{header.top,.filters,nav.tabs,.btn{display:none!important}.panel{display:block!important;page-break-after:always}body{background:#fff}}
 </style>
 </head>
 <body>
 <header class="top">
  <div class="hwrap">
-  <div class="logo"><div class="flag"></div><div><h1>IRL 2026 · Travel Command Centre</h1><small>Round 3 Buddh International Circuit (27-29 Nov) · Round 4 Navi Mumbai (4-6 Dec)</small></div></div>
+  <div class="logo"><div class="flag" id="irllogo"></div><div><h1>IRL 2026 · Travel Command Centre</h1><small>Round 3 Buddh International Circuit (27-29 Nov) · Round 4 Navi Mumbai (4-6 Dec)</small></div></div>
   <div class="sp"></div>
   <div id="rounds" role="group" aria-label="Round"></div>
   <span id="conf" class="conf hide">CONFIDENTIAL · includes fares</span>
@@ -178,6 +211,13 @@ function applyRound(){
   document.title='IRL '+RND[r].n+' Travel Command Centre';}
 document.getElementById('asof').textContent='18 Nov 2026';
 if(COSTS)$('#conf').classList.remove('hide');
+/* avatars & logos: drop official images into assets/ (drivers/<slug>.jpg, teams/<slug>.png, irl-logo.png); falls back to initials */
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const ini=n=>n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const TEAMCOL={};
+function avatar(name,cat,size){const col=`var(${catVar(cat||'Driver')})`;const img=cat==='Driver'||!cat?`<img src="assets/drivers/${slug(name)}.jpg" alt="" loading="lazy" onerror="this.remove()">`:'';return `<span class="av ${size||''}" style="background:${col}" aria-hidden="true">${ini(name)}${img}</span>`}
+function teamBadge(team){const w=team.replace(/Kichcha's Kings Bengaluru/,'Kings BLR').split(/\s+/).filter(x=>x.length>1);return `<span class="tb" aria-hidden="true">${(w[0][0]+(w[1]?w[1][0]:'')).toUpperCase()}<img src="assets/teams/${slug(team)}.png" alt="" onerror="this.remove()"></span>`}
+(function(){const i=new Image();i.onload=()=>{const f=document.getElementById('irllogo');f.style.background='#fff url(assets/irl-logo.png) center/contain no-repeat';f.style.border='0';f.style.width='auto';f.style.minWidth='44px';f.style.height='40px';f.style.padding='2px 6px';f.style.borderRadius='6px'};i.src='assets/irl-logo.png'})();
 /* theme */
 const root=document.documentElement;
 try{const t=localStorage.getItem('irl-theme');if(t)root.dataset.theme=t}catch(e){}
@@ -213,6 +253,7 @@ const hideTip=()=>tip.style.display='none';
 document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-tip]');t?showTip(e,t.dataset.tip):0});
 document.addEventListener('mousemove',e=>{if(tip.style.display==='block'&&e.target.closest&&e.target.closest('[data-tip]'))showTip(e,e.target.closest('[data-tip]').dataset.tip)});
 document.addEventListener('mouseout',e=>{if(e.target.closest&&e.target.closest('[data-tip]'))hideTip()});
+document.addEventListener('touchstart',e=>{if(!e.target.closest('[data-tip]'))hideTip()},{passive:true});
 const A=s=>s.replace(/"/g,'&quot;');
 /* generic bar chart */
 function barChart({labels,series,stacked=true,horizontal=false,height=240,fmt=v=>v,tipLabel=l=>l,rot=false}){
@@ -317,12 +358,12 @@ $('#csv').onclick=()=>{const rows=window._rows;const h=COLS.map(c=>c[1]);const q
 function nextLine(p){const ls=p.legs;return ls.map(l=>l.frm).concat(ls[ls.length-1].to).filter((x,i,a)=>i===0||x!==a[i-1]).join(' → ')}
 function renderPeople(){
   $('#pg').innerHTML=fPeople().map(p=>{const a=p.legs.filter(l=>l.kind==='Arrival Delhi').slice(-1)[0],d=p.legs.find(l=>l.kind==='Departure Delhi'),m=p.legs.find(l=>l.kind==='Departure Mumbai');
-   return `<div class="card pc" style="border-left-color:var(${catVar(p.category)})" data-p="${esc(p.name)}"><h4>${esc(p.name)}</h4><div class="m">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div>
+   return `<div class="card pc" style="border-left-color:var(${catVar(p.category)})" data-p="${esc(p.name)}"><div class="top">${avatar(p.name,p.category)}<div><h4>${esc(p.name)}</h4><div class="m">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}</div></div></div>
    <div class="route">${a?`<span>Lands ${fdShort(a.arr_date)} ${a.arr}</span>`:'<span style="color:var(--crit)">No inbound ticket</span>'}${d?`<span>Leaves DEL ${fdShort(d.date)} ${d.dep}</span>`:''}${m?`<span>Leaves BOM ${fdShort(m.date)} ${m.dep}</span>`:''}</div><div class="m" style="margin-top:6px">${esc(nextLine(p))}</div></div>`}).join('')||'<div class="note">No one matches the filters.</div>'}
 $('#pg').onclick=e=>{const c=e.target.closest('[data-p]');if(c)openPerson(c.dataset.p)};
 function openPerson(n){const p=pByName[n];if(!p)return;
   const al=alerts.filter(a=>a.who.includes(p.name.split(' ')[0])&&a.who.includes(p.name.split(' ').slice(-1)[0])||a.who===p.name);
-  $('#mbox').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div><h2 style="margin:0">${esc(p.name)}</h2><div class="note">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}<br>${p.ticket_name?'Ticket name: '+esc(p.ticket_name)+' · ':''}Role: ${esc(p.role_conf)}</div></div><button class="btn" onclick="closeM()">Close</button></div>
+  $('#mbox').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category,'lg')}<div><h2 style="margin:0">${esc(p.name)}</h2><div class="note">${catLab(p.category)}${p.team?' · '+esc(p.team):''}${p.nat?' · '+esc(p.nat):''}${p.no?' · #'+p.no:''}<br>${p.ticket_name?'Ticket name: '+esc(p.ticket_name)+' · ':''}Role: ${esc(p.role_conf)}</div></div></div><button class="btn" onclick="closeM()" style="align-self:flex-start">Close</button></div>
   ${al.length?`<div style="margin:10px 0">${al.map(a=>`<div style="margin:4px 0"><span class="sev ${a.sev}">${a.sev==='High'?'▲':a.sev==='Medium'?'◆':'●'} ${a.sev}</span> ${esc(a.title)}</div>`).join('')}</div>`:''}
   ${p.legs.map(l=>`<div class="step"><div class="d">${fd(l.date)}<small>${l.dep} → ${l.arr}${l.arr_date!==l.date?' (+1)':''}</small></div><div><div class="k" style="color:var(${catVar(p.category)})">${esc(l.kind)}</div><b>${esc(l.frm_city)} (${l.frm}) → ${esc(l.to_city)} (${l.to})</b><br>${esc(l.airline)} ${esc(l.flight)}${l.dep_term?' · dep '+esc(l.dep_term):''}${l.arr_term?' · arr '+esc(l.arr_term):''}<br><span class="note">${esc(l.cls||'')} ${l.bag?'· Bags: '+esc(l.bag):''} ${l.ticket?'· Tkt '+esc(l.ticket):''} · ${esc(l.cart)}</span></div></div>`).join('')}`;
   $('#modal').style.display='flex'}
@@ -337,9 +378,9 @@ function renderTeams(){
      if(!p){st='no';txt=R4?'No R4 ticket':'No ticket';no++}
      else if(R4){st='part';txt='Exit ticketed · inbound pending';pt++}
      else{const a=p.legs.some(l=>l.kind==='Arrival Delhi'),o=p.legs.some(l=>l.kind==='Departure Delhi')||ALLP.find(x=>x.name===m.name).legs.some(l=>l.kind==='Departure Mumbai');if(a&&o){st='ok';txt='R3 in/out ticketed';ok++}else{st='part';txt=a?'No return':'No inbound';pt++}}
-     return `<div class="tm"><span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}</span></span><span class="st ${st}">${st==='ok'?'✓':st==='part'?'!':'✗'} ${txt}</span></div>`}).join('');
+     return `<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}</span></span></span><span class="st ${st}">${st==='ok'?'✓':st==='part'?'!':'✗'} ${txt}</span></div>`}).join('');
    const n=ms.length;
-   return `<div class="card team"><h4>${esc(t)}</h4><div class="bar"><i style="width:${ok/n*100}%;background:var(--good)"></i><i style="width:${pt/n*100}%;background:var(--warn)"></i><i style="width:${no/n*100}%;background:var(--crit)"></i></div>${rows}</div>`}).join('')}
+   return `<div class="card team"><div class="th">${teamBadge(t)}<h4>${esc(t)}</h4></div><div class="bar"><i style="width:${ok/n*100}%;background:var(--good)"></i><i style="width:${pt/n*100}%;background:var(--warn)"></i><i style="width:${no/n*100}%;background:var(--crit)"></i></div>${rows}</div>`}).join('')}
 function renderPickup(){
   const mode=$('#pmode').value||'Arrival Delhi';
   const keyd=s=>mode==='Arrival Delhi'?s.arr_date:s.date;
@@ -377,6 +418,7 @@ function renderCosts(){
   const byCat=CATS.map(c=>L.filter(x=>x.cat===c.k).reduce((a,x)=>a+x.t,0));
   const per=CATS.map((c,i)=>{const n=new Set(L.filter(x=>x.cat===c.k).map(x=>x.p)).size;return n?byCat[i]/n:0});
   $('#p-costs').innerHTML=`<div class="grid kpis"><div class="card kpi"><div class="l">Total fares</div><div class="v">${inr(tot)}</div><div class="s">${L.length} bookings · Caitlin Wood booked separately, not included</div></div><div class="card kpi"><div class="l">Domestic</div><div class="v">${inr(dom)}</div></div><div class="card kpi"><div class="l">International</div><div class="v">${inr(intl)}</div></div><div class="card kpi"><div class="l">Average per head</div><div class="v">${inr(tot/new Set(L.map(x=>x.p)).size)}</div></div></div><div class="grid cols2" style="margin-top:14px">${card('k1','Spend by group','Total fare, INR',CATS.map(c=>c.l),[{name:'INR',color:'--seq',values:byCat}],{stacked:false,fmt:v=>v>=1e5?(v/1e5).toFixed(1)+'L':v>=1e3?Math.round(v/1e3)+'k':v})}${card('k2','Average spend per person','INR per head by group',CATS.map(c=>c.l),[{name:'INR per head',color:'--seq',values:per.map(Math.round)}],{stacked:false,fmt:v=>v>=1e5?(v/1e5).toFixed(1)+'L':v>=1e3?Math.round(v/1e3)+'k':v})}</div><div class="tw" style="margin-top:14px"><table><tr><th>Passenger</th><th>Group</th><th>Route</th><th>Type</th><th>Fare</th></tr>${L.sort((a,b)=>b.t-a.t).map(c=>`<tr><td>${esc(c.p)}</td><td>${catLab(c.cat)}</td><td>${esc(c.route)}</td><td>${c.intl?'International':'Domestic'}</td><td>${inr(c.t)}</td></tr>`).join('')}</table></div>`}
+function stackify(sel){const tb=$(sel);if(!tb)return;const hs=[...tb.querySelectorAll('tr:first-child th')].map(h=>h.textContent.trim());tb.querySelectorAll('tr').forEach((r,i)=>{if(i)[...r.children].forEach((c,j)=>{if(hs[j])c.setAttribute('data-l',hs[j])})})}
 function render(){
   applyRound();fillTeams();
   $$('#rounds button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===S.round));
@@ -386,6 +428,7 @@ function render(){
   $('#filters').classList.toggle('hide',['alerts','costs'].includes(S.tab)&&S.tab==='costs');
   $('#fcount').textContent=fPeople().length+' of '+people.length+' people with '+(S.round==='All'?'':S.round+' ')+'tickets';
   ({overview:renderOverview,timeline:renderTimeline,moves:renderMoves,people:renderPeople,teams:renderTeams,pickup:renderPickup,alerts:renderAlerts,costs:()=>COSTS&&renderCosts()})[S.tab]();
+  stackify('#at');stackify('#pt');
   try{history.replaceState(null,'','#'+S.tab)}catch(e){}}
 applyRound();fillTeams();const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))S.tab=h;
 addEventListener('resize',()=>{if(S.tab==='timeline')renderTimeline()});
