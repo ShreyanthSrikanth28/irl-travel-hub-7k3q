@@ -221,7 +221,6 @@ nav.tabs button:hover{transform:translateY(-1px);color:#fff}
  <nav class="tabs" id="tabs" role="tablist"></nav>
 </header>
 <main>
- <div class="track" aria-hidden="true"><span>🏎️</span><span>🚐</span></div>
  <div class="filters" id="filters">
   <input type="search" id="q" placeholder="Search name, flight, city, team…" aria-label="Search">
   <span id="catchips"></span>
@@ -522,7 +521,7 @@ const roleOf=p=>STAFF_ROLE[p.name]||p.group||p.category;
 const DUTY={Fri:{label:'Fri 27 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyderabad Blackbirds':'Deshik Gurram','Speed Demons Delhi':'Deshik Gurram','Goa Aces JA Racing':'Parth Holkar',"Kichcha's Kings Bengaluru":'Parth Holkar','Kolkata Royal Tigers':'Ashish Chapekar'}},
             Sat:{label:'Sat 28 Nov',m:{'Chennai Turbo Riders':'Shreyanth S','Hyderabad Blackbirds':'Neehal Kanumuri','Speed Demons Delhi':'Deshik Gurram','Goa Aces JA Racing':'Ashish Chapekar',"Kichcha's Kings Bengaluru":'Parth Holkar','Kolkata Royal Tigers':'Deshik Gurram'}}};
 const PENDING=['Shahid','Kaustabh'];
-const TEAMEMO={'Chennai Turbo Riders':'🐢','Hyderabad Blackbirds':'🐦‍⬛','Speed Demons Delhi':'😈',"Kichcha's Kings Bengaluru":'👑','Goa Aces JA Racing':'🏖️','Kolkata Royal Tigers':'🐯'};
+const TEAMEMO={'Chennai Turbo Riders':'♞','Hyderabad Blackbirds':'🐦‍⬛','Speed Demons Delhi':'😈',"Kichcha's Kings Bengaluru":'🦁','Goa Aces JA Racing':'🏖️','Kolkata Royal Tigers':'🐯'};
 function renderRoles(){
   const day=S.duty||'Fri',dd=DUTY[day];
   const byTeam={};DATA.L4.concat(DATA.L3.filter(x=>!DATA.L4.some(y=>y.name===x.name))).forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
@@ -530,8 +529,8 @@ function renderRoles(){
   const person=p=>`<div class="tm"><span class="who">${avatar(p.name,p.category,'sm')}<span><b>${esc(p.name)}</b><br><span class="note">${esc(roleOf(p))}</span></span></span></div>`;
   const duties=n=>['Fri','Sat'].map(d=>{const ts=Object.entries(DUTY[d].m).filter(([t,w])=>w===n).map(([t])=>t.replace(' Bengaluru','').replace(' JA Racing','').replace(' Turbo Riders',' (CTR)'));return ts.length?`<span class="tag" style="margin:2px 3px 0 0">${d}: ${ts.map(esc).join(' + ')}</span>`:''}).join('');
   $('#p-roles').innerHTML=`<div class="pill-row"><span class="note" style="align-self:center">Race-weekend duty roster. Pick a day:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===day}" data-duty="${k}">${v.label}</span>`).join('')}</div>
-  <h3 style="margin:6px 0">🏎️ Driver teams and who has their back</h3><div class="grid cols2">${Object.entries(byTeam).map(([t,ms])=>{const who=dd.m[t];const me=who==='Shreyanth S';return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<div><h4>${TEAMEMO[t]||''} ${esc(t)}</h4>${MANAGERS[t]?`<div class="note">Team manager: <b>${esc(MANAGERS[t])}</b> 🎖️</div>`:''}</div></div><div class="dutyc"><span class="av sm ${me?'me':''}" style="background:var(--cat-t)">${ini(who)}</span><div><div class="note" style="line-height:1.1">${dd.label} coordinator</div><b>${esc(who)}${me?' 🙋':''}</b></div></div>${ms.map(m=>`<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}${LOCALS.has(m.name)?' · local 🏠':''}</span></span></span></div>`).join('')}</div>`}).join('')}</div>
-  <h3 style="margin:18px 0 6px">🧢 Team coordinators</h3><div class="grid cols2">${grp('Team Coordinator').map(p=>`<div class="card"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category)}<span><b>${esc(p.name)}</b>${p.name==='Shreyanth S'?' 🙋':''}<br><span class="note">${esc(roleOf(p))}</span><br>${duties(p.name)}</span></div></div>`).join('')}</div>
+  <h3 style="margin:6px 0">🏎️ Driver teams and who has their back</h3><div class="grid cols2">${Object.entries(byTeam).map(([t,ms])=>{const who=dd.m[t];const me=who==='Shreyanth S';return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<div><h4>${TEAMEMO[t]||''} ${esc(t)}</h4>${MANAGERS[t]?`<div class="note">Team manager: <b>${esc(MANAGERS[t])}</b></div>`:''}</div></div><div class="dutyc"><span class="av sm" style="background:var(--cat-t)">${ini(who)}</span><div><div class="note" style="line-height:1.1">${dd.label} coordinator</div><b>${esc(who)}</b></div></div>${ms.map(m=>`<div class="tm"><span class="who">${avatar(m.name,'Driver','sm')}<span><b>${esc(m.name)}</b> <span class="note">${esc(m.nat||'')}${m.no?' · #'+m.no:''}${LOCALS.has(m.name)?' · local 🏠':''}</span></span></span></div>`).join('')}</div>`}).join('')}</div>
+  <h3 style="margin:18px 0 6px">🧢 Team coordinators</h3><div class="grid cols2">${grp('Team Coordinator').map(p=>`<div class="card"><div style="display:flex;gap:12px;align-items:center">${avatar(p.name,p.category)}<span><b>${esc(p.name)}</b><br><span class="note">${esc(roleOf(p))}</span><br>${duties(p.name)}</span></div></div>`).join('')}</div>
   <h3 style="margin:18px 0 6px">🔧 Race engineers</h3><div class="grid cols2"><div class="card">${grp('Race Engineer').map(person).join('')||'<div class="note">None yet</div>'}</div></div>
   <h3 style="margin:18px 0 6px">📣 PR team</h3><div class="grid cols2"><div class="card">${ALLP.filter(p=>p.group==='PR Team').sort((a,b)=>a.name.localeCompare(b.name)).map(person).join('')}</div></div>
   <h3 style="margin:18px 0 6px">📸 Social media</h3><div class="grid cols2">
