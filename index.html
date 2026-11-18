@@ -442,7 +442,7 @@ function statusOf(name,cat){
   return{t:'Lands '+fdShort(a.arr_date)+' '+a.arr,c:'ok'}}
 const stChip=s=>`<span class="st ${s.c==='ok'?'ok':s.c==='wait'?'part':'no'}">${s.c==='ok'?'✓':s.c==='wait'?'⏳':'✗'} ${esc(s.t)}</span>`;
 function personRow(name,cat,sub,extra){const s=statusOf(name,cat);return `<div class="tm prow" data-p="${esc(name)}"><span class="who">${avatar(name,cat,'sm')}<span><b>${esc(name)}</b><br><span class="note">${sub||''}</span></span></span>${stChip(s)}</div>`}
-const PGROUPS=[['all','Everyone'],['Driver Coordinator','Driver coordination'],['Driver','Drivers'],['UK Race Engineers','UK race engineers'],['Social Media & PR','PR & Social'],['Team Coordinator','Team coordinators']];
+const PGROUPS=[['all','Everyone'],['Driver','Drivers'],['Driver Coordinator','Event coordination'],['UK Race Engineers','Race engineers'],['Social Media & PR','PR & Social'],['Team Coordinator','Team coordinators']];
 function renderPeople(){
   const q=S.pq.toLowerCase(),f=S.pg,dd=DUTY[S.duty];
   const hit=(n,extra)=>!q||(n+' '+(extra||'')).toLowerCase().includes(q);
@@ -450,9 +450,6 @@ function renderPeople(){
   const all=n=>ALLP.find(p=>p.name===n);
   let html=`<div class="card" style="margin-bottom:14px"><div class="note" style="margin-bottom:8px">Everyone in one place. Tap a person to see their full trip.</div>
    <div class="pill-row" style="margin:0"><input type="search" id="pq" class="btn" style="min-width:200px;cursor:text" placeholder="Search a name…" value="${esc(S.pq)}" aria-label="Search people">${PGROUPS.map(([k,l])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${f===k}" data-pg="${esc(k)}">${l}</span>`).join('')}</div></div>`;
-  if(showG('Driver Coordinator')){
-    const dc=[{n:'Simran',r:'Driver Coordinator'},{n:'Shreyanth S',r:'Assistant Driver Coordinator'}].filter(x=>hit(x.n,'driver coordination coordinator')).map(x=>personRow(x.n,'Driver Coordinator',x.r)).join('');
-    if(dc)html+=`<h3 style="margin:0 0 8px">🎯 Driver coordination team</h3><div class="card" style="margin-bottom:18px"><div class="note" style="margin-bottom:6px">Simran and Shreyanth work together on driver coordination, team coordination and everything else at the event. They are counted with the drivers (24 drivers + 2 = 26).</div>${dc}</div>`}
   if(showG('Driver')){
     const byTeam={};LINE.forEach(r=>(byTeam[r.team]=byTeam[r.team]||[]).push(r));
     if(S.round!=='R4'||true) html+=`<div class="pill-row" style="margin:0 0 10px"><span class="note" style="align-self:center">Team coordinator on duty:</span>${Object.entries(DUTY).map(([k,v])=>`<span class="chip" role="button" tabindex="0" aria-pressed="${k===S.duty}" data-duty="${k}">${v.label}</span>`).join('')}</div>`;
@@ -460,9 +457,12 @@ function renderPeople(){
       const rows=ms.filter(m=>hit(m.name,t+' '+(m.nat||''))).map(m=>personRow(m.name,'Driver',`${esc(m.nat||'')}${m.no?' · #'+m.no:''}`)).join('');
       if(!rows)return '';
       return `<div class="card team"><div class="th">${teamBadge(t,'lg')}<div><h4>${TEAMEMO[t]||''} ${esc(t)}</h4><div class="note">${MANAGERS[t]?'Team manager: <b>'+esc(MANAGERS[t])+'</b><br>':''}${esc(dd.label)}: <b>${esc(dd.m[t]||'TBC')}</b></div></div></div>${rows}</div>`}).join('')+`</div>`}
+  if(showG('Driver Coordinator')){
+    const dc=[{n:'Simran',r:'Driver Coordinator'},{n:'Shreyanth S',r:'Assistant Driver Coordinator'}].filter(x=>hit(x.n,'event coordination coordinator driver')).map(x=>personRow(x.n,'Driver Coordinator',x.r)).join('');
+    if(dc)html+=`<h3 style="margin:18px 0 8px">🎯 Event coordination team</h3><div class="card">${dc}</div>`}
   const grp=(title,list,sub)=>{const rows=list.filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,sub?sub(p):esc(roleOf(p)))).join('');return rows?`<h3 style="margin:18px 0 8px">${title}</h3><div class="card">${rows}</div>`:''};
   const byCat=c=>ALLP.filter(p=>p.category===c).sort((a,b)=>a.name.localeCompare(b.name));
-  if(showG('UK Race Engineers')){const uk=byCat('UK Race Engineers').filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,'UK race engineers')).join('')+PENDING_UK.filter(n=>hit(n,'uk race engineers')).map(n=>personRow(n,'UK Race Engineers','UK race engineers')).join('');if(uk)html+=`<h3 style="margin:18px 0 8px">🇬🇧 UK race engineers</h3><div class="card">${uk}</div>`};
+  if(showG('UK Race Engineers')){const uk=byCat('UK Race Engineers').filter(p=>hit(p.name,p.group)).map(p=>personRow(p.name,p.category,'UK race engineers')).join('')+PENDING_UK.filter(n=>hit(n,'uk race engineers')).map(n=>personRow(n,'UK Race Engineers','UK race engineers')).join('');if(uk)html+=`<h3 style="margin:18px 0 8px">🇬🇧 Race engineers</h3><div class="card">${uk}</div>`};
   if(showG('Social Media & PR')){
     html+=grp('📣 PR team',ALLP.filter(p=>p.group==='PR Team').sort((a,b)=>a.name.localeCompare(b.name)));
     const soc=ALLP.filter(p=>p.group==='Social Media (Percept)').sort((a,b)=>a.name.localeCompare(b.name));
