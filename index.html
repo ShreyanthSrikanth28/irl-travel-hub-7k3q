@@ -452,9 +452,12 @@ function journey(name,cat){
   const mumExit=!!hB,mumbaiBased=!!full&&!hB&&!!dD&&dD.to==='BOM',local=LOCALS.has(name);
   const inR4=cat!=='Driver'||DATA.L4.some(x=>x.name===name),inR3=cat!=='Driver'||DATA.L3.some(x=>x.name===name);
   const it=(done,txtDone,txtPend)=>({done:!!done,t:done?txtDone:txtPend});
-  const r3=local?[{done:true,t:'R3: local, no flight needed'}]:[
-    it(aD,aD&&'Lands '+fdShort(aD.arr_date)+' '+aD.arr,'Flight to Delhi'),
-    it(dD,dD&&(mumExit?'Delhi → Mumbai '+fdShort(dD.date):'Leaves Delhi '+fdShort(dD.date)+' '+dD.dep),mumExit?'Delhi → Mumbai flight':'Flight home from Delhi')];
+  const arrsAll=find(l=>l.kind==='Arrival Delhi'),depsAll=find(l=>l.kind==='Departure Delhi');
+  const dlist=[];
+  arrsAll.forEach(x=>dlist.push([x.dt_arr,{done:true,t:'Lands '+fdShort(x.arr_date)+' '+x.arr}]));
+  depsAll.forEach(x=>dlist.push([x.dt_dep,{done:true,t:(mumExit&&x.to==='BOM'?'Delhi → Mumbai '+fdShort(x.date):'Leaves Delhi '+fdShort(x.date)+' '+x.dep)}]));
+  dlist.sort((p,q)=>p[0].localeCompare(q[0]));
+  const r3=local?[{done:true,t:'R3: local, no flight needed'}]:(dlist.map(x=>x[1]).concat(arrsAll.length?[]:[{done:false,t:'Flight to Delhi'}]).concat(depsAll.length?[]:[{done:false,t:mumExit?'Delhi → Mumbai flight':'Flight home from Delhi'}]));
   const hbTxt=hB&&'Leaves Mumbai '+fdShort(hB.date)+' '+hB.dep;
   let items;
   if(R==='R3')items=inR3?r3:[];
