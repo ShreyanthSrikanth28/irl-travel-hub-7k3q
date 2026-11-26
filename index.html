@@ -272,6 +272,7 @@ const DATA={"people":[{"name":"Aaryan Ugale","group":"PR Team","category":"Socia
 const COSTS=false;
 const CATS=[{k:'Driver',l:'Drivers',c:'--cat-d'},{k:'Driver Coordinator',l:'Driver Coord',c:'--cat-c'},{k:'UK Race Engineers',l:'UK Race Engineers',c:'--cat-r'},{k:'Social Media & PR',l:'PR & Social',c:'--cat-s'},{k:'Team Coordinator',l:'Team Coord',c:'--cat-t'}];
 const LOCALS=new Set(['Shahan Ali Mohsin','Aman Nagdev','Divy Nandan']);
+const MUMBAI_BASED=new Set(['Toshita Shetty']);
 const catVar=k=>(CATS.find(c=>c.k===k)||{c:'--cat-o'}).c;
 const catLab=k=>(CATS.find(c=>c.k===k)||{l:k}).l;
 const KINDS=['Arrival Delhi','Departure Delhi','Departure Mumbai','En route / connection'];
@@ -450,7 +451,7 @@ function journey(name,cat){
   const R=S.round,full=ALLP.find(x=>x.name===name),L=full?full.legs:[];
   const find=f=>L.filter(f).sort((a,b)=>a.dt_dep.localeCompare(b.dt_dep));
   const aD=find(l=>l.kind==='Arrival Delhi').slice(-1)[0],dD=find(l=>l.kind==='Departure Delhi').slice(-1)[0],hB=find(l=>l.kind==='Departure Mumbai')[0],tB=find(l=>l.to==='BOM')[0];
-  const mumExit=!!hB,mumbaiBased=!!full&&!hB&&!!dD&&dD.to==='BOM',local=LOCALS.has(name);
+  const mumExit=!!hB,mumbaiBased=!!full&&((!hB&&!!dD&&dD.to==='BOM')||MUMBAI_BASED.has(name)),local=LOCALS.has(name);
   const inR4=cat!=='Driver'||DATA.L4.some(x=>x.name===name),inR3=cat!=='Driver'||DATA.L3.some(x=>x.name===name);
   const it=(done,txtDone,txtPend)=>({done:!!done,t:done?txtDone:txtPend});
   const arrsAll=find(l=>l.kind==='Arrival Delhi'),depsAll=find(l=>l.kind==='Departure Delhi');
